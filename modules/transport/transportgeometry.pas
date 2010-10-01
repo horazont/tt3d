@@ -13,12 +13,13 @@ type
   TGeometryLink = record
     ToNode: PGeometryNode;
     ToLink: Word;
-    BezierVector: TVector4f;
+    BezierVector: TVector3;
+    Yaw: TVectorFloat;
   end;
 
   TGeometryNode = object
-    Location: TVector3f;
-    Yaw: Single;
+    Location: TVector3;
+    Yaw: TVectorFloat;
     Links: array of TGeometryLink;
   end;
 

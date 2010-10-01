@@ -5,9 +5,132 @@ unit TransportRail;
 interface
 
 uses
-  Classes, SysUtils, Geometry, TransportGeometry, fgl, contnrs;
+  Classes, SysUtils, Geometry, TransportGeometry, fgl, contnrs, GTBase;
 
 const
+  PAIR_DEFAULT = 0;
+  PAIR_CROSSING0 = 1;
+  PAIR_CROSSING1 = 2;
+  // and so forth.
+
+type
+  TPathLinkSide = class;
+  TPathLink = class;
+  TPathNodeLink = class;
+  TPathNodeSide = class;
+  TPathNodeSidePair = class;
+  TPathNode = class;
+
+  TPathPairNumber = Integer;
+  TPathSideSlotNumber = Integer;
+
+  TPathNodeSideDirection = (sdA, sdB);
+
+  TPathSideDefinition = record
+    Number: TPathPairNumber;
+    Direction: TPathNodeSideDirection;
+  end;
+
+  TPathLinkSide = class (TObject)
+  private
+    FBezierVector: TVector3;
+    FNode: TPathNode;
+    FNodeLink: TPathNodeLink;
+    FOwner: TPathLink;
+  public
+    procedure DoChange;
+  public
+    property BezierVector: PVector4 read GetBezierVector;
+  end;
+
+  TPathLink = class (TGTBaseObject)
+  private
+    FBezierPath: TCubicBezier3;
+    FBezierYaw: TCubicBezier1;
+    FLength: Double;
+    FMaxSpeed: Double;
+    FMinSpeed: Double;
+    FSides: array [TPathNodeSideDirection] of TPathLinkSide;
+    FYaw: TVectorFloat;
+  public
+    procedure DoChange; override;
+  published
+    property Length: Double read FLength write SetLength;
+    property MinSpeed: Double read FMinSpeed write SetMinSpeed;
+    property MaxSpeed: Double read FMaxSpeed write SetMaxSpeed;
+    property Yaw: Double read FYaw write SetYaw;
+  end;
+
+  TPathLinks = specialize TFPGList<TPathLink>;
+
+  TPathNodeLink = class (TGTBaseObject)
+  public
+    destructor Destroy; override;
+  private
+    FLink: TPathLink;
+    FOwner: TPathNodeSide;
+  protected
+    procedure LinkLink(const ALink: TPathLink);
+    procedure LinkChanged(Sender: TObject);
+    procedure LinkDeleting(Sender: TObject);
+    procedure SetLink(const ALink: TPathLink);
+    procedure SetOwner(const AOwner: TPathNodeSide);
+    procedure UnlinkLink(const ALink: TPathLink);
+  public
+    property Link: TPathLink read FLink;
+    property Owner: TPathNodeSide read FOwner;
+    property Side: TPathNodeSideDirection read FSide;
+  end;
+
+  TPathNodeSide = class (TGTBaseObject)
+  public
+    constructor Create; override;
+    destructor Destroy; override;
+  private
+    FDirection: TPathNodeSideDirection;
+    FLinks: TPathLinks;
+    FOwner: TPathNodeSidePair;
+  protected
+    procedure LinkNodeLink(const ALink: TPathNodeLink);
+    function New(const ALink: TPathLink): TPathNodeLink;
+    procedure NodeLinkDeleting(Sender: TObject);
+    procedure Remove(const ALink: TPathNodeLink);
+    procedure SetOwner(const AOwner: TPathNodeSidePair);
+    procedure UnlinkNodeLink(const ALink: TPathNodeLink);
+  public
+    function ToDefinition: TPathSideDefinition;
+  public
+    property Count: Integer read GetCount;
+    property Links[Index: Integer]: TPathLink read GetLink; default;
+  end;
+
+  TPathNodeSidePair = class (TObject)
+  private
+    FNumber: TPathPairNumber;
+    FOwner: TPathNode;
+    FSides: array [TPathNodeSideDirection] of TPathNodeSide;
+  protected
+    procedure SetOwner(const AOwner: TPathNode);
+  public
+    property Side[ASide: TPathNodeSideDirection]: TPathNodeSide read GetSide; default;
+  end;
+
+  TPathNodeSidePairs = specialize TFPGList<TPathNodeSidePair>;
+
+  TPathNode = class (TObject)
+  private
+    FLocation: TVector3;
+    FSidePairs: TPathNodeSidePairs;
+  public
+    function Connect(const AThroughSide, AToSide: TPathSideDefinition; const AAtNode: TPathNode): TPathLink;
+  public
+    property Count: Integer read GetCount;
+    property SidePairs[Index: Integer]: TPathNodeSidePair read GetSidePair; default;
+  end;
+
+function SideDefinition(const APair: TPathPairNumber; const ASide: TPathNodeSideDirection): TPathSideDefinition;
+
+(*const
   RAIL_NODE_FLAG_SIGNAL = $0001;
   RAIL_NODE_FLAG_SPLITMERGE = $0002;
   RAIL_NODE_FLAG_DEAD_END = $0004;
@@ -80,7 +203,7 @@ type
   TPath = record
     Length: Single;
     Links: array of TRailLinkDescription;
-  end;
+  end;       *)
 
 function OppositeSide(const ASide: TRailLinkSide): TRailLinkSide;
 
@@ -95,8 +218,8 @@ end;
 
 function HashData(const OfANode: PRailNode): String;
 begin
-  SetLength(Result, SizeOf(TVector3f));
-  Move(OfANode^.GeometryNode^.Location, Result[1], SizeOf(TVector3f));
+  SetLength(Result, SizeOf(TVector3));
+  Move(OfANode^.GeometryNode^.Location, Result[1], SizeOf(TVector3));
 end;
 
 end.
