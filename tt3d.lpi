@@ -45,40 +45,38 @@
         <PackageName Value="dglsdk"/>
       </Item3>
     </RequiredPackages>
-    <Units Count="24">
+    <Units Count="25">
       <Unit0>
         <Filename Value="tt3d.lpr"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="tt3d"/>
+        <IsVisibleTab Value="True"/>
         <EditorIndex Value="0"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="82"/>
-        <CursorPos X="41" Y="129"/>
-        <UsageCount Value="37"/>
+        <TopLine Value="130"/>
+        <CursorPos X="89" Y="164"/>
+        <UsageCount Value="56"/>
         <Loaded Value="True"/>
       </Unit0>
       <Unit1>
         <Filename Value="modules/transport/transportrail.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="TransportRail"/>
-        <IsVisibleTab Value="True"/>
-        <EditorIndex Value="3"/>
+        <EditorIndex Value="1"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="141"/>
-        <CursorPos X="18" Y="206"/>
-        <UsageCount Value="37"/>
+        <TopLine Value="578"/>
+        <CursorPos X="7" Y="595"/>
+        <UsageCount Value="56"/>
         <Loaded Value="True"/>
       </Unit1>
       <Unit2>
         <Filename Value="modules/geometry/geometry.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="Geometry"/>
-        <EditorIndex Value="1"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="371"/>
-        <CursorPos X="19" Y="391"/>
-        <UsageCount Value="37"/>
-        <Loaded Value="True"/>
+        <TopLine Value="333"/>
+        <CursorPos X="47" Y="365"/>
+        <UsageCount Value="56"/>
       </Unit2>
       <Unit3>
         <Filename Value="/usr/share/fpcsrc/rtl/inc/matrix.pp"/>
@@ -86,14 +84,14 @@
         <WindowIndex Value="0"/>
         <TopLine Value="1"/>
         <CursorPos X="18" Y="352"/>
-        <UsageCount Value="8"/>
+        <UsageCount Value="6"/>
       </Unit3>
       <Unit4>
         <Filename Value="/usr/share/fpcsrc/rtl/inc/mvecimp.inc"/>
         <WindowIndex Value="0"/>
         <TopLine Value="1"/>
         <CursorPos X="5" Y="222"/>
-        <UsageCount Value="8"/>
+        <UsageCount Value="6"/>
       </Unit4>
       <Unit5>
         <Filename Value="modules/transport/transportgeometry.pas"/>
@@ -102,7 +100,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="1"/>
         <CursorPos X="23" Y="22"/>
-        <UsageCount Value="35"/>
+        <UsageCount Value="54"/>
       </Unit5>
       <Unit6>
         <Filename Value="modules/io/messageloop.pas"/>
@@ -111,7 +109,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="1"/>
         <CursorPos X="19" Y="139"/>
-        <UsageCount Value="35"/>
+        <UsageCount Value="54"/>
       </Unit6>
       <Unit7>
         <Filename Value="modules/io/messageloopsdl.pas"/>
@@ -119,7 +117,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="1"/>
         <CursorPos X="9" Y="32"/>
-        <UsageCount Value="18"/>
+        <UsageCount Value="16"/>
       </Unit7>
       <Unit8>
         <Filename Value="includes/config.inc"/>
@@ -127,7 +125,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="1"/>
         <CursorPos X="18" Y="1"/>
-        <UsageCount Value="35"/>
+        <UsageCount Value="54"/>
       </Unit8>
       <Unit9>
         <Filename Value="../packages/dglsdk/src/sdl.pas"/>
@@ -135,7 +133,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="532"/>
         <CursorPos X="10" Y="2885"/>
-        <UsageCount Value="12"/>
+        <UsageCount Value="10"/>
       </Unit9>
       <Unit10>
         <Filename Value="/usr/share/fpcsrc/packages/fcl-base/src/contnrs.pp"/>
@@ -143,7 +141,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="397"/>
         <CursorPos X="104" Y="381"/>
-        <UsageCount Value="12"/>
+        <UsageCount Value="10"/>
       </Unit10>
       <Unit11>
         <Filename Value="modules/pathfinder/pathfinderrail.pas"/>
@@ -151,8 +149,8 @@
         <UnitName Value="PathfinderRail"/>
         <WindowIndex Value="0"/>
         <TopLine Value="1"/>
-        <CursorPos X="69" Y="81"/>
-        <UsageCount Value="34"/>
+        <CursorPos X="14" Y="43"/>
+        <UsageCount Value="53"/>
       </Unit11>
       <Unit12>
         <Filename Value="modules/pathfinder/pathfinderbase.pas"/>
@@ -161,7 +159,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="34"/>
         <CursorPos X="12" Y="68"/>
-        <UsageCount Value="34"/>
+        <UsageCount Value="53"/>
       </Unit12>
       <Unit13>
         <Filename Value="../packages/stwcore/stworderedqueue.pas"/>
@@ -169,7 +167,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="46"/>
         <CursorPos X="94" Y="82"/>
-        <UsageCount Value="12"/>
+        <UsageCount Value="10"/>
       </Unit13>
       <Unit14>
         <Filename Value="../something/gfxmanager.pas"/>
@@ -177,7 +175,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="1"/>
         <CursorPos X="1" Y="1"/>
-        <UsageCount Value="9"/>
+        <UsageCount Value="7"/>
       </Unit14>
       <Unit15>
         <Filename Value="../something/gfxmanager_opengl2vbo.pas"/>
@@ -185,7 +183,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="84"/>
         <CursorPos X="44" Y="95"/>
-        <UsageCount Value="9"/>
+        <UsageCount Value="7"/>
       </Unit15>
       <Unit16>
         <Filename Value="../something/gfxmanager_abstract.pas"/>
@@ -193,7 +191,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="46"/>
         <CursorPos X="39" Y="57"/>
-        <UsageCount Value="9"/>
+        <UsageCount Value="7"/>
       </Unit16>
       <Unit17>
         <Filename Value="../something/gfxmanager_opengl2.pas"/>
@@ -201,7 +199,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="1"/>
         <CursorPos X="1" Y="1"/>
-        <UsageCount Value="9"/>
+        <UsageCount Value="7"/>
       </Unit17>
       <Unit18>
         <Filename Value="modules/gl/glgeometrymanager.pas"/>
@@ -209,7 +207,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="56"/>
         <CursorPos X="68" Y="39"/>
-        <UsageCount Value="19"/>
+        <UsageCount Value="17"/>
       </Unit18>
       <Unit19>
         <Filename Value="modules/gl/glgeometrymanagerbase.pas"/>
@@ -217,7 +215,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="1"/>
         <CursorPos X="44" Y="9"/>
-        <UsageCount Value="19"/>
+        <UsageCount Value="17"/>
       </Unit19>
       <Unit20>
         <Filename Value="modules/gl/glgeometrymanagerimmediate.pas"/>
@@ -225,7 +223,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="41"/>
         <CursorPos X="1" Y="1"/>
-        <UsageCount Value="19"/>
+        <UsageCount Value="17"/>
       </Unit20>
       <Unit21>
         <Filename Value="modules/gl/glgeometrymanagervbo.pas"/>
@@ -233,18 +231,16 @@
         <WindowIndex Value="0"/>
         <TopLine Value="1"/>
         <CursorPos X="1" Y="1"/>
-        <UsageCount Value="19"/>
+        <UsageCount Value="17"/>
       </Unit21>
       <Unit22>
         <Filename Value="modules/gl/glgeometry.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="GLGeometry"/>
-        <EditorIndex Value="2"/>
         <WindowIndex Value="0"/>
         <TopLine Value="61"/>
         <CursorPos X="3" Y="83"/>
-        <UsageCount Value="28"/>
-        <Loaded Value="True"/>
+        <UsageCount Value="47"/>
       </Unit22>
       <Unit23>
         <Filename Value="../packages/stwcore/stwautobalancedtree.pas"/>
@@ -252,129 +248,137 @@
         <WindowIndex Value="0"/>
         <TopLine Value="267"/>
         <CursorPos X="58" Y="310"/>
-        <UsageCount Value="9"/>
+        <UsageCount Value="7"/>
       </Unit23>
+      <Unit24>
+        <Filename Value="/usr/share/fpcsrc/rtl/objpas/math.pp"/>
+        <UnitName Value="math"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="1702"/>
+        <CursorPos X="44" Y="1712"/>
+        <UsageCount Value="13"/>
+      </Unit24>
     </Units>
     <JumpHistory Count="30" HistoryIndex="29">
       <Position1>
-        <Filename Value="modules/geometry/geometry.pas"/>
-        <Caret Line="21" Column="11" TopLine="1"/>
+        <Filename Value="tt3d.lpr"/>
+        <Caret Line="9" Column="56" TopLine="1"/>
       </Position1>
       <Position2>
-        <Filename Value="modules/geometry/geometry.pas"/>
-        <Caret Line="23" Column="11" TopLine="1"/>
+        <Filename Value="modules/transport/transportrail.pas"/>
+        <Caret Line="496" Column="66" TopLine="484"/>
       </Position2>
       <Position3>
-        <Filename Value="modules/geometry/geometry.pas"/>
-        <Caret Line="24" Column="11" TopLine="1"/>
+        <Filename Value="modules/transport/transportrail.pas"/>
+        <Caret Line="931" Column="35" TopLine="880"/>
       </Position3>
       <Position4>
-        <Filename Value="modules/geometry/geometry.pas"/>
-        <Caret Line="30" Column="11" TopLine="1"/>
+        <Filename Value="tt3d.lpr"/>
+        <Caret Line="9" Column="56" TopLine="1"/>
       </Position4>
       <Position5>
-        <Filename Value="modules/geometry/geometry.pas"/>
-        <Caret Line="31" Column="11" TopLine="2"/>
+        <Filename Value="modules/transport/transportrail.pas"/>
+        <Caret Line="408" Column="74" TopLine="380"/>
       </Position5>
       <Position6>
-        <Filename Value="modules/geometry/geometry.pas"/>
-        <Caret Line="32" Column="13" TopLine="3"/>
+        <Filename Value="modules/transport/transportrail.pas"/>
+        <Caret Line="360" Column="1" TopLine="357"/>
       </Position6>
       <Position7>
-        <Filename Value="modules/geometry/geometry.pas"/>
-        <Caret Line="34" Column="13" TopLine="4"/>
+        <Filename Value="modules/transport/transportrail.pas"/>
+        <Caret Line="933" Column="31" TopLine="883"/>
       </Position7>
       <Position8>
-        <Filename Value="modules/geometry/geometry.pas"/>
-        <Caret Line="35" Column="17" TopLine="6"/>
+        <Filename Value="modules/transport/transportrail.pas"/>
+        <Caret Line="726" Column="56" TopLine="707"/>
       </Position8>
       <Position9>
-        <Filename Value="modules/geometry/geometry.pas"/>
-        <Caret Line="36" Column="10" TopLine="7"/>
+        <Filename Value="modules/transport/transportrail.pas"/>
+        <Caret Line="930" Column="1" TopLine="883"/>
       </Position9>
       <Position10>
-        <Filename Value="modules/geometry/geometry.pas"/>
-        <Caret Line="43" Column="11" TopLine="8"/>
+        <Filename Value="modules/transport/transportrail.pas"/>
+        <Caret Line="714" Column="1" TopLine="681"/>
       </Position10>
       <Position11>
-        <Filename Value="modules/geometry/geometry.pas"/>
-        <Caret Line="44" Column="11" TopLine="15"/>
+        <Filename Value="modules/transport/transportrail.pas"/>
+        <Caret Line="815" Column="54" TopLine="788"/>
       </Position11>
       <Position12>
-        <Filename Value="modules/geometry/geometry.pas"/>
-        <Caret Line="45" Column="13" TopLine="16"/>
+        <Filename Value="modules/transport/transportrail.pas"/>
+        <Caret Line="710" Column="1" TopLine="675"/>
       </Position12>
       <Position13>
-        <Filename Value="modules/geometry/geometry.pas"/>
-        <Caret Line="73" Column="36" TopLine="46"/>
+        <Filename Value="modules/transport/transportrail.pas"/>
+        <Caret Line="932" Column="1" TopLine="885"/>
       </Position13>
       <Position14>
-        <Filename Value="modules/geometry/geometry.pas"/>
-        <Caret Line="75" Column="37" TopLine="45"/>
+        <Filename Value="modules/transport/transportrail.pas"/>
+        <Caret Line="709" Column="1" TopLine="681"/>
       </Position14>
       <Position15>
-        <Filename Value="modules/geometry/geometry.pas"/>
-        <Caret Line="73" Column="10" TopLine="47"/>
+        <Filename Value="modules/transport/transportrail.pas"/>
+        <Caret Line="712" Column="1" TopLine="681"/>
       </Position15>
       <Position16>
-        <Filename Value="modules/geometry/geometry.pas"/>
-        <Caret Line="11" Column="23" TopLine="1"/>
+        <Filename Value="modules/transport/transportrail.pas"/>
+        <Caret Line="714" Column="1" TopLine="681"/>
       </Position16>
       <Position17>
-        <Filename Value="modules/geometry/geometry.pas"/>
-        <Caret Line="57" Column="36" TopLine="31"/>
+        <Filename Value="modules/transport/transportrail.pas"/>
+        <Caret Line="715" Column="1" TopLine="681"/>
       </Position17>
       <Position18>
-        <Filename Value="modules/geometry/geometry.pas"/>
-        <Caret Line="58" Column="24" TopLine="29"/>
+        <Filename Value="modules/transport/transportrail.pas"/>
+        <Caret Line="705" Column="61" TopLine="681"/>
       </Position18>
       <Position19>
-        <Filename Value="modules/geometry/geometry.pas"/>
-        <Caret Line="8" Column="25" TopLine="1"/>
+        <Filename Value="modules/transport/transportrail.pas"/>
+        <Caret Line="279" Column="44" TopLine="236"/>
       </Position19>
       <Position20>
-        <Filename Value="modules/geometry/geometry.pas"/>
-        <Caret Line="92" Column="86" TopLine="46"/>
+        <Filename Value="modules/transport/transportrail.pas"/>
+        <Caret Line="905" Column="90" TopLine="885"/>
       </Position20>
       <Position21>
-        <Filename Value="modules/geometry/geometry.pas"/>
-        <Caret Line="71" Column="58" TopLine="43"/>
+        <Filename Value="modules/transport/transportrail.pas"/>
+        <Caret Line="340" Column="60" TopLine="315"/>
       </Position21>
       <Position22>
-        <Filename Value="modules/geometry/geometry.pas"/>
-        <Caret Line="201" Column="35" TopLine="168"/>
+        <Filename Value="modules/transport/transportrail.pas"/>
+        <Caret Line="933" Column="1" TopLine="886"/>
       </Position22>
       <Position23>
-        <Filename Value="modules/geometry/geometry.pas"/>
-        <Caret Line="8" Column="26" TopLine="293"/>
+        <Filename Value="modules/transport/transportrail.pas"/>
+        <Caret Line="360" Column="1" TopLine="332"/>
       </Position23>
       <Position24>
-        <Filename Value="tt3d.lpr"/>
-        <Caret Line="125" Column="41" TopLine="77"/>
+        <Filename Value="modules/transport/transportrail.pas"/>
+        <Caret Line="404" Column="1" TopLine="376"/>
       </Position24>
       <Position25>
-        <Filename Value="tt3d.lpr"/>
-        <Caret Line="121" Column="6" TopLine="78"/>
+        <Filename Value="modules/transport/transportrail.pas"/>
+        <Caret Line="360" Column="1" TopLine="332"/>
       </Position25>
       <Position26>
-        <Filename Value="modules/geometry/geometry.pas"/>
-        <Caret Line="72" Column="55" TopLine="50"/>
+        <Filename Value="modules/transport/transportrail.pas"/>
+        <Caret Line="404" Column="1" TopLine="376"/>
       </Position26>
       <Position27>
-        <Filename Value="modules/geometry/geometry.pas"/>
-        <Caret Line="97" Column="39" TopLine="59"/>
+        <Filename Value="modules/transport/transportrail.pas"/>
+        <Caret Line="636" Column="1" TopLine="602"/>
       </Position27>
       <Position28>
-        <Filename Value="modules/geometry/geometry.pas"/>
-        <Caret Line="74" Column="10" TopLine="69"/>
+        <Filename Value="modules/transport/transportrail.pas"/>
+        <Caret Line="934" Column="1" TopLine="887"/>
       </Position28>
       <Position29>
-        <Filename Value="modules/geometry/geometry.pas"/>
-        <Caret Line="290" Column="50" TopLine="256"/>
+        <Filename Value="modules/transport/transportrail.pas"/>
+        <Caret Line="359" Column="1" TopLine="332"/>
       </Position29>
       <Position30>
-        <Filename Value="modules/geometry/geometry.pas"/>
-        <Caret Line="100" Column="82" TopLine="54"/>
+        <Filename Value="modules/transport/transportrail.pas"/>
+        <Caret Line="404" Column="1" TopLine="376"/>
       </Position30>
     </JumpHistory>
   </ProjectOptions>
@@ -396,6 +400,12 @@
     </Other>
   </CompilerOptions>
   <Debugging>
+    <BreakPoints Count="1">
+      <Item1>
+        <Source Value="modules/transport/transportrail.pas"/>
+        <Line Value="937"/>
+      </Item1>
+    </BreakPoints>
     <Watches Count="1">
       <Item1>
         <Expression Value="TVector4f"/>

@@ -6,7 +6,7 @@ uses
   {$IFDEF UNIX}{$IFDEF UseCThreads}
   cthreads,
   {$ENDIF}{$ENDIF}
-  SysUtils, Classes, Geometry, math, dateutils;
+  SysUtils, Classes, Geometry, math, dateutils, TransportRail;
 
 {$R *.res}
 
@@ -72,7 +72,7 @@ begin
   end;
 end.*)
 
-var
+(*var
   p: array [0..3] of TVector3;
 
 function c(t: TVectorFloat): TVector3;
@@ -88,50 +88,98 @@ var
   I: Integer;
   Step: TVectorFloat;
   Prev, Curr: TVector3;
+  L: TVectorFloat;
+  LSum: Extended;
+  Min, Max: TVectorFloat;
 begin
   Result := 0.0;
   Step := 1/n;
   Prev := c(0);
+  Min := Infinity;
+  Max := NegInfinity;
   for I := 1 to n do
   begin
     Curr := c(I * Step);
-    Result += VLength(Curr - Prev);
+    L := VLength(Curr - Prev);
+    if L < Min then
+      Min := L
+    else if L > Max then
+      Max := L;
+    Result += L;
     Prev := Curr;
   end;
+  WriteLn(Format('avg: %.4f; min: %.4f; max: %.4f', [Result / n, Min, Max]));
 end;
 
 function seconds(time: TDateTime): Double;
 begin
-  Result := SecondOf(time) + MilliSecondOf(time) / 1000.0;
+  Result := HourOf(time) * 3600 + MinuteOf(time) * 60 + SecondOf(time) + MilliSecondOf(time) / 1000.0;
+end;
+
+procedure Angletest(abase: TVectorFloat);
+
+  procedure WriteSingle(a: TVectorFloat);
+  begin
+    WriteLn(Format('%.4f => %.4f', [a*180/Pi, VecToAngle(AngleToVec(a))*180/Pi]));
+  end;
+
+begin
+  WriteSingle(abase);
+  WriteSingle(abase + pi / 6);
+  WriteSingle(abase + pi / 4);
+  WriteSingle(abase + pi / 3);
 end;
 
 var
   TimeStart, TimeEnd: TDateTime;
-  Accuracy: Integer;
+  Accuracy: TVectorFloat;
   Current, Previous: TVectorFloat;
-  Curve: TCubicBezier4;
+  Curve: TCubicBezier3;
 begin
-  Curve[0] := Vector4f(0.0, 0.0, 0.0, 0.0);
-  Curve[1] := Vector4f(1.0, 0.0, 0.0, 1.0);
-  Curve[2] := Vector4f(1.0, 1.0, 0.0, 1.0);
-  Curve[3] := Vector4f(2.0, 1.0, 0.0, 0.0);
-  p[0] := Curve[0].Vec3;
-  p[1] := Curve[1].Vec3;
-  p[2] := Curve[2].Vec3;
-  p[3] := Curve[3].Vec3;
+  Angletest(0);
+  Angletest(Pi / 2);
+  Angletest(Pi);
+  Angletest(Pi + Pi / 2);
+  Angletest(2*Pi);
+  Curve[0] := Vector3(0.0, 0.0, 0.0);
+  Curve[1] := Vector3(1.0, 0.0, 0.0);
+  Curve[2] := Vector3(1.0, 1000.0, 0.0);
+  Curve[3] := Vector3(2.0, 1000.0, 0.0);
+  p[0] := Curve[0];
+  p[1] := Curve[1];
+  p[2] := Curve[2];
+  p[3] := Curve[3];
   WriteLn(FormatVector(Curve ** 0.0));
   WriteLn(FormatVector(Curve ** 1.0));
-  Accuracy := 2;
+  Accuracy := 100;
   Previous := 0;
-  while Accuracy < 4000000 do
+  while Accuracy > 1/10000 do
   begin
     TimeStart := Now;
-    Current := BLength(Curve, Accuracy);
+    Current := BLengthEx(Curve, Accuracy);
     TimeEnd := Now;
     WriteLn(Format('%.7f, difference = %.7f', [Current, Abs(Current - Previous)]));
-    WriteLn(Format('needed: %.4fs with steps = %d', [seconds(TimeEnd -TimeStart), Accuracy]));
-    Accuracy *= 2;
+    WriteLn(Format('needed: %.4fs with planned accuracy = %011.7f', [seconds(TimeEnd -TimeStart), Accuracy]));
+    Accuracy /= 10;
     Previous := Current;
   end;
+  TimeStart := Now;
+  Current := BLengthAuto(Curve);
+  TimeEnd := Now;
+  WriteLn(Format('auto: %.7f', [Current]));
+  WriteLn(Format('needed: %.4fs', [seconds(TimeEnd -TimeStart), Accuracy]));
 end.
+*)
 
+var
+  A, B, C: TPathNode;
+begin
+  A := TPathNode.Create;
+  A.Location := Vector3(1.0, 1.0, 0.0);
+  A.SidePairs[PAIR_DEFAULT].Tangent := Vector3(0.0, -1.0, 0.0);
+  B := TPathNode.Create;
+  B.Location := Vector3(0.0, 0.0, 0.0);
+  B.SidePairs[PAIR_DEFAULT].Tangent := Normalize(Vector3(0.5, 0.5, 0.0));
+
+  WriteLn(A.Connect(SideDefinition(PAIR_DEFAULT, sdA), SideDefinition(PAIR_DEFAULT, sdB), B, TPathLinkBezier).Length);
+end.
