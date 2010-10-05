@@ -86,18 +86,25 @@ type
     destructor Destroy; override;
   private
     FBezierYaw: TCubicBezier1;
+    FInvalidated: Boolean;
     FLength: TVectorFloat;
     FMaxSpeed: TVectorFloat;
     FMinSpeed: TVectorFloat;
     FPathSegments: TPathLinkLinearSegments;
     FSides: array [TPathNodeSideDirection] of TPathLinkSide;
     FYaw: TVectorFloat;
+    function GetLength: TVectorFloat;
+    function GetMaxSpeed: TVectorFloat;
+    function GetMinSpeed: TVectorFloat;
+    function GetPathSegmets: TPathLinkLinearSegments;
+    function GetYaw: TVectorFloat;
   protected
     procedure AddPathSegment(const AFrom, ATo: TVector4; const ALength: Double);
     procedure BuildPath; virtual; abstract;
-    procedure ClearPath;
-    procedure HandleLinkSideChanged(Sender: TObject); virtual;
     function ClampYaw(const AValue: TVectorFloat): TVectorFloat;
+    procedure ClearPath;
+    procedure Deinvalidate;
+    procedure HandleLinkSideChanged(Sender: TObject); virtual;
     procedure SetLength(const AValue: TVectorFloat);
     procedure SetMaxSpeed(const AValue: TVectorFloat);
     procedure SetMinSpeed(const AValue: TVectorFloat);
@@ -105,20 +112,15 @@ type
     procedure UpdateSpeedLimits(const ARadius: TVectorFloat);
   public
     procedure DoChange; override;
+    procedure Invalidate;
   published
-    property Length: Double read FLength;
-    property MinSpeed: Double read FMinSpeed;
-    property MaxSpeed: Double read FMaxSpeed;
-    property Yaw: Double read FYaw;
+    property Length: TVectorFloat read GetLength;
+    property MinSpeed: TVectorFloat read GetMinSpeed;
+    property MaxSpeed: TVectorFloat read GetMaxSpeed;
+    property PathSegmets: TPathLinkLinearSegments read GetPathSegmets;
+    property Yaw: TVectorFloat read GetYaw;
   end;
   TPathLinkClass = class of TPathLink;
-
-  { TPathLinkStraight }
-
-  TPathLinkStraight = class (TPathLink)
-  protected
-    procedure BuildPath; override;
-  end;
 
   { TPathLinkBezier }
 
@@ -131,12 +133,22 @@ type
     procedure BuildPath; override;
     procedure SetMaxRadius(const AValue: TVectorFloat);
     procedure SetYaw(const AValue: TVectorFloat); override;
-    procedure UpdateCurve;
+    procedure UpdateCurve; virtual;
+  end;
+
+  { TPathLinkStraight }
+
+  TPathLinkStraight = class (TPathLinkBezier)
+  protected
+    procedure BuildPathSimple(const vFrom, vTo: TVector4);
+    procedure BuildPath; override;
+    procedure SetYaw(const AValue: TVectorFloat); override;
+    procedure UpdateCurve; override;
   end;
 
   { TPathLinkArc }
 
-  TPathLinkArc = class (TPathLink)
+  TPathLinkArc = class (TPathLinkStraight)
   private
     FAngleStart: TVectorFloat;
     FAngleEnd: TVectorFloat;
@@ -366,6 +378,7 @@ end;
 constructor TPathLink.Create;
 begin
   inherited Create;
+  FInvalidated := True;
   FBezierYaw[0] := 0.0;
   FBezierYaw[3] := 0.0;
   FSides[sdA] := TPathLinkSide.Create;
@@ -384,10 +397,50 @@ begin
   inherited Destroy;
 end;
 
+function TPathLink.GetLength: Double;
+begin
+  Deinvalidate;
+  Exit(FLength);
+end;
+
+function TPathLink.GetMaxSpeed: Double;
+begin
+  Deinvalidate;
+  Exit(FMaxSpeed);
+end;
+
+function TPathLink.GetMinSpeed: Double;
+begin
+  Deinvalidate;
+  Exit(FMinSpeed);
+end;
+
+function TPathLink.GetPathSegmets: TPathLinkLinearSegments;
+begin
+  Deinvalidate;
+  Exit(FPathSegments);
+end;
+
+function TPathLink.GetYaw: Double;
+begin
+  Deinvalidate;
+  Exit(FYaw);
+end;
+
 procedure TPathLink.AddPathSegment(const AFrom, ATo: TVector4;
   const ALength: Double);
 begin
   FPathSegments.Add(TPathLinkLinearSegment.Create(ALength, AFrom, ATo));
+end;
+
+function TPathLink.ClampYaw(const AValue: TVectorFloat): TVectorFloat;
+begin
+  if AValue < 0.0 then
+    Exit(0.0)
+  else if AValue > MAX_YAW then
+    Exit(MAX_YAW)
+  else
+    Exit(AValue);
 end;
 
 procedure TPathLink.ClearPath;
@@ -399,20 +452,15 @@ begin
   FPathSegments.Clear;
 end;
 
-procedure TPathLink.HandleLinkSideChanged(Sender: TObject);
+procedure TPathLink.Deinvalidate;
 begin
-  if FSides[sdA].FUpdatedOnce and FSides[sdB].FUpdatedOnce then
-    BuildPath;
+  BuildPath;
+  FInvalidated := False;
 end;
 
-function TPathLink.ClampYaw(const AValue: TVectorFloat): TVectorFloat;
+procedure TPathLink.HandleLinkSideChanged(Sender: TObject);
 begin
-  if AValue < 0.0 then
-    Exit(0.0)
-  else if AValue > MAX_YAW then
-    Exit(MAX_YAW)
-  else
-    Exit(AValue);
+  Invalidate;
 end;
 
 procedure TPathLink.SetLength(const AValue: TVectorFloat);
@@ -457,6 +505,12 @@ begin
   inherited DoChange;
 end;
 
+procedure TPathLink.Invalidate;
+begin
+  FInvalidated := True;
+  DoChange;
+end;
+
 { TPathLinkLinearSegment }
 
 constructor TPathLinkLinearSegment.Create(const ALength: TVectorFloat; AFrom,
@@ -483,24 +537,6 @@ begin
   Exit(True);
 end;
 
-{ TPathLinkStraight }
-
-procedure TPathLinkStraight.BuildPath;
-var
-  vFrom, vTo: TVector4;
-  len: TVectorFloat;
-begin
-  ClearPath;
-  vFrom := Vector4(FSides[sdA].FNode.FLocation, 0.0);
-  vTo := Vector4(FSides[sdB].FNode.FLocation, 0.0);
-  len := VLength(vFrom.Vec2 - vTo.Vec2);
-  AddPathSegment(vFrom, vTo, len);
-  SetMinSpeed(NegInfinity);
-  SetMaxSpeed(Infinity);
-  SetLength(len);
-  SetYaw(0.0);
-end;
-
 { TPathLinkBezier }
 
 procedure TPathLinkBezier.BuildPath;
@@ -515,7 +551,10 @@ begin
   l := 0.0;
   tPrev := 0.0;
   vPrev := FBezierPath ** tPrev;
-  vTanPrev := Normalize(FBezierPath[0].Vec2 - FBezierPath[1].Vec2);
+  if FBezierPath[0].Vec2 = FBezierPath[1].Vec2 then
+    vTanPrev := Normalize(FBezierPath[3].Vec2 - FBezierPath[0].Vec2)
+  else
+    vTanPrev := Normalize(FBezierPath[0].Vec2 - FBezierPath[1].Vec2);
   tStep := BLengthAutoAccuracy(FBezierPath);
   if tStep >= 0.1 then
     tStep := 0.1;
@@ -565,7 +604,6 @@ begin
   FLength := l;
   FMaxRadius := radiusMax;
   UpdateSpeedLimits(radiusMax);
-  DoChange;
 end;
 
 procedure TPathLinkBezier.SetMaxRadius(const AValue: TVectorFloat);
@@ -574,7 +612,6 @@ begin
     Exit;
   FMaxRadius := AValue;
   UpdateSpeedLimits(FMaxRadius);
-  DoChange;
 end;
 
 procedure TPathLinkBezier.SetYaw(const AValue: TVectorFloat);
@@ -586,7 +623,6 @@ begin
     Exit;
   inherited SetYaw(AValue);
   UpdateSpeedLimits(FMaxRadius);
-  DoChange;
 end;
 
 procedure TPathLinkBezier.UpdateCurve;
@@ -598,6 +634,44 @@ begin
   HalfLen := VLength(FBezierPath[0] - FBezierPath[3]) / 2.0;
   FBezierPath[1] := FBezierPath[0] + Normalize(FSides[sdA].FPathTangent) * HalfLen;
   FBezierPath[2] := FBezierPath[3] + Normalize(FSides[sdB].FPathTangent) * HalfLen;
+end;
+
+{ TPathLinkStraight }
+
+procedure TPathLinkStraight.BuildPathSimple(const vFrom, vTo: TVector4);
+var
+  len: TVectorFloat;
+begin
+  len := VLength(vFrom.Vec2 - vTo.Vec2);
+  AddPathSegment(vFrom, vTo, len);
+  SetMinSpeed(NegInfinity);
+  SetMaxSpeed(Infinity);
+  FLength := len;
+end;
+
+procedure TPathLinkStraight.BuildPath;
+var
+  vFrom, vTo: TVector4;
+begin
+  vFrom := Vector4(FSides[sdA].FNode.FLocation, 0.0);
+  vTo := Vector4(FSides[sdB].FNode.FLocation, 0.0);
+  if vFrom.Z = vTo.Z then
+    BuildPathSimple(vFrom, vTo)
+  else
+    inherited BuildPath;
+end;
+
+procedure TPathLinkStraight.SetYaw(const AValue: TVectorFloat);
+begin
+  // Straight cannot have yaw
+  inherited SetYaw(0.0);
+end;
+
+procedure TPathLinkStraight.UpdateCurve;
+begin
+  inherited UpdateCurve;
+  FBezierPath[1].Vec2 := FBezierPath[0].Vec2;
+  FBezierPath[2].Vec2 := FBezierPath[3].Vec2;
 end;
 
 { TPathLinkArc }
@@ -615,13 +689,18 @@ begin
   vTB := FSides[sdB].FPathTangent.Vec2;
   vA := FSides[sdA].FNode.FLocation;
   vB := FSides[sdB].FNode.FLocation;
+  if (vTA = -vTB) then
+  begin
+    inherited;
+    Exit;
+  end;
   FAngleStart := VecToAngle(vTA) - Pi / 2.0;
   FAngleEnd := VecToAngle(vTB) + Pi / 2.0;
   FCosSinStart := AngleToVec(FAngleStart);
   FCosSinEnd := AngleToVec(FAngleEnd);
-  FRadius := Abs((vA.X - vB.X) / (FCosSinStart.Cos - FCosSinEnd.Cos));
   FCenter.X := -(vA.X*FCosSinEnd.Cos - vB.X*FCosSinStart.Cos)/(FCosSinStart.Cos-FCosSinEnd.Cos);
   FCenter.Y := -(vA.Y*FCosSinEnd.Sin - vB.Y*FCosSinStart.Sin)/(FCosSinStart.Sin-FCosSinEnd.Sin);
+  FRadius := VLength(vA.Vec2 - FCenter);
 
   BezierHeightYaw[0] := Vector2(vA.Z, 0.0);
   BezierHeightYaw[1] := Vector2(vA.Z, FYaw);
@@ -661,7 +740,6 @@ begin
 
   FLength := FRadius * (FAngleEnd - FAngleStart);
   UpdateSpeedLimits(FRadius);
-  DoChange;
 end;
 
 { TPathNodeLink }

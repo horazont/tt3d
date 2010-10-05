@@ -26,7 +26,7 @@ type
 
   { TMessageLoop }
 
-  TMessageLoop = class (TObject)
+  TSDLApplication = class (TObject)
   public
     constructor Create; virtual;
     destructor Destroy; override;
@@ -72,74 +72,74 @@ type
 
 implementation
 
-{ TMessageLoop }
+{ TSDLApplication }
 
-constructor TMessageLoop.Create;
+constructor TSDLApplication.Create;
 begin
   FTermiated := False;
   FSleep := 10;
 end;
 
-destructor TMessageLoop.Destroy;
+destructor TSDLApplication.Destroy;
 begin
   inherited Destroy;
 end;
 
-procedure TMessageLoop.DoIdle;
+procedure TSDLApplication.DoIdle;
 begin
   if Assigned(FOnIdle) then
     FOnIdle(Self);
 end;
 
-procedure TMessageLoop.DoMouseDown(X, Y: Integer; ChangedButton: TMouseButton);
+procedure TSDLApplication.DoMouseDown(X, Y: Integer; ChangedButton: TMouseButton);
 begin
   if Assigned(FOnMouseDown) then
     FOnMouseDown(Self, X, Y, ChangedButton);
 end;
 
-procedure TMessageLoop.DoMouseMove(X, Y: Integer; RelX, RelY: Integer);
+procedure TSDLApplication.DoMouseMove(X, Y: Integer; RelX, RelY: Integer);
 begin
   if Assigned(FOnMouseMove) then
     FOnMouseMove(Self, X, Y, RelX, RelY);
 end;
 
-procedure TMessageLoop.DoMouseUp(X, Y: Integer; ChangedButton: TMouseButton);
+procedure TSDLApplication.DoMouseUp(X, Y: Integer; ChangedButton: TMouseButton);
 begin
   if Assigned(FOnMouseUp) then
     FOnMouseUp(Self, X, Y, ChangedButton);
 end;
 
-procedure TMessageLoop.DoLoop(TimeInterval: Double);
+procedure TSDLApplication.DoLoop(TimeInterval: Double);
 begin
   if Assigned(FOnLoop) then
     FOnLoop(Self, TimeInterval);
 end;
 
-procedure TMessageLoop.DoKeyDown(AKey: Word; AChar: Cardinal);
+procedure TSDLApplication.DoKeyDown(AKey: Word; AChar: Cardinal);
 begin
   if Assigned(FOnKeyDown) then
     FOnKeyDown(Self, AKey, AChar);
 end;
 
-procedure TMessageLoop.DoKeyPress(AKey: Word; AChar: Cardinal);
+procedure TSDLApplication.DoKeyPress(AKey: Word; AChar: Cardinal);
 begin
   if Assigned(FOnKeyPress) then
     FOnKeyPress(Self, AKey, AChar);
 end;
 
-procedure TMessageLoop.DoKeyUp(AKey: Word; AChar: Cardinal);
+procedure TSDLApplication.DoKeyUp(AKey: Word; AChar: Cardinal);
 begin
   if Assigned(FOnKeyUp) then
     FOnKeyUp(Self, AKey, AChar);
 end;
 
-procedure TMessageLoop.DoQuit;
+procedure TSDLApplication.DoQuit;
 begin
   if Assigned(FOnQuit) then
     FOnQuit(Self);
 end;
 
-procedure TMessageLoop.EnterLoop;
+procedure TSDLApplication.EnterLoop;
 var
   Last, This: Cardinal;
 begin
@@ -162,17 +162,17 @@ begin
   end;
 end;
 
-procedure TMessageLoop.Terminate;
+procedure TSDLApplication.Terminate;
 begin
   FTermiated := True;
 end;
 
-function TMessageLoop.Terminated: Boolean;
+function TSDLApplication.Terminated: Boolean;
 begin
   Result := FTermiated;
 end;
 
-procedure TMessageLoop.ProcessMessages;
+procedure TSDLApplication.ProcessMessages;
 var
   Ev: TSDL_Event;
 begin

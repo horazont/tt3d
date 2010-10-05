@@ -1,3 +1,8 @@
 backup
 lib
 *~
+heaptrc.txt
+*.o
+*.or
+*.s
+log.*

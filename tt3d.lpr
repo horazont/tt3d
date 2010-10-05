@@ -6,7 +6,8 @@ uses
   {$IFDEF UNIX}{$IFDEF UseCThreads}
   cthreads,
   {$ENDIF}{$ENDIF}
-  SysUtils, Classes, Geometry, math, dateutils, TransportRail;
+  heaptrc,
+  SysUtils, Classes, Geometry, math, dateutils, ioConfig, Main;
 
 {$R *.res}
 
@@ -171,15 +172,26 @@ begin
 end.
 *)
 
-var
+(*var
   A, B, C: TPathNode;
 begin
   A := TPathNode.Create;
-  A.Location := Vector3(1.0, 1.0, 0.0);
-  A.SidePairs[PAIR_DEFAULT].Tangent := Vector3(0.0, -1.0, 0.0);
+  A.Location := Vector3(2.0, 0.0, 0.0);
+  A.SidePairs[PAIR_DEFAULT].Tangent := Vector3(-1.0, 0.0, 0.0);
   B := TPathNode.Create;
-  B.Location := Vector3(0.0, 0.0, 0.0);
-  B.SidePairs[PAIR_DEFAULT].Tangent := Normalize(Vector3(0.5, 0.5, 0.0));
+  B.Location := Vector3(1.0, 0.0, 0.0);
+  B.SidePairs[PAIR_DEFAULT].Tangent := Normalize(Vector3(1.0, 0.0, 0.0));
 
-  WriteLn(A.Connect(SideDefinition(PAIR_DEFAULT, sdA), SideDefinition(PAIR_DEFAULT, sdB), B, TPathLinkBezier).Length);
+  WriteLn(A.Connect(SideDefinition(PAIR_DEFAULT, sdA), SideDefinition(PAIR_DEFAULT, sdB), B, TPathLinkArc).Length);
+end.*)
+
+var
+  App: TTT3D;
+begin
+  App := TTT3D.Create;
+  try
+    App.RunApp;
+  finally
+    App.Free;
+  end;
 end.

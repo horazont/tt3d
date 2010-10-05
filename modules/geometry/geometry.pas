@@ -52,6 +52,8 @@ type
   TCubicBezier3 = array [0..3] of TVector3;
   TCubicBezier4 = array [0..3] of TVector4;
 
+  TVector2f = array [0..1] of Single;
+  PVector2f = ^TVector2f;
   TVector3f = array [0..2] of Single;
   PVector3f = ^TVector3f;
   TVector4f = array [0..3] of Single;
