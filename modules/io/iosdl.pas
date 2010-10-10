@@ -7,7 +7,7 @@ interface
 
 uses
   Classes, SysUtils, dglOpenGL, sdl, sdl_net, sdl_ttf, sdl_image, ioLog,
-  heaptrc, CustApp, GTXDG;
+  CustApp, GTXDG;
   
 type
   TsdlKeyActionMode = (kmPress, kmRelease);
@@ -281,11 +281,8 @@ begin
 end;
 
 procedure TsdlApplication.ProcessParams;
-var
-  HeapTrcFile: String;
 begin
-  HeapTrcFile := ExtractFilePath(ParamStr(0))+'heaptrc.txt';
-  SetHeapTraceOutput(HeapTrcFile);
+
 end;
 
 procedure TsdlApplication.InitSettings;

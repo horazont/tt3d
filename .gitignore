@@ -6,3 +6,5 @@ heaptrc.txt
 *.or
 *.s
 log.*
+valgrind.*
+tt3d

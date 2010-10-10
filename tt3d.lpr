@@ -6,8 +6,9 @@ uses
   {$IFDEF UNIX}{$IFDEF UseCThreads}
   cthreads,
   {$ENDIF}{$ENDIF}
-  heaptrc,
-  SysUtils, Classes, Geometry, math, dateutils, ioConfig, Main;
+//  heaptrc,
+  SysUtils, Classes, Geometry, math, dateutils, ioConfig, coreUIBootstrap,
+TransportGeometryGL, FileUtil, uiGL, GLMaterials, XMLGeometry;
 
 {$R *.res}
 
@@ -187,7 +188,13 @@ end.*)
 
 var
   App: TTT3D;
+  HeapTrcFile: String;
 begin
+  HeapTrcFile := ExtractFilePath(ParamStr(0)) + 'heaptrc.txt';
+  if FileExistsUTF8(HeapTrcFile) then
+    DeleteFileUTF8(HeapTrcFile);
+//  SetHeapTraceOutput(HeapTrcFile);
+
   App := TTT3D.Create;
   try
     App.RunApp;

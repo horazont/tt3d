@@ -43,6 +43,8 @@ type
   public
     constructor Create; override;
     destructor Destroy; override;
+  protected
+    function DefaultNodeName: String; override;
   published
     property Video: TTT3DSettingsVideo read FVideo;
   end;
@@ -68,6 +70,11 @@ destructor TTT3DSettings.Destroy;
 begin
   FVideo.Free;
   inherited Destroy;
+end;
+
+function TTT3DSettings.DefaultNodeName: String;
+begin
+  Result := 'tt3DSettings';
 end;
 
 { TTT3DSettingsVideo }

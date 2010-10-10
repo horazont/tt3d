@@ -33,6 +33,8 @@ type
   TTriangle3 = array [0..2] of TVector3;
   PTriangle3 = ^TTriangle3;
 
+  TMatrix3 = array [0..8] of TVectorFloat;
+
   TVector4_Array = array [0..3] of TVectorFloat;
   TVector4_Length = type TVector4_Array;
   TVector4 = record
@@ -81,6 +83,8 @@ operator * (A: TVectorFloat; B: TVector2): TVector2; inline;
 operator * (A: TVectorFloat; B: TVector3): TVector3; inline;
 operator * (A: TVectorFloat; B: TVector4): TVector4; inline;
 
+operator * (A: TMatrix3; B: TVector3): TVector3; inline;
+
 operator ** (A, B: TVector3): TVector3; inline;
 operator ** (A: TCubicBezier1; B: TVectorFloat): TVectorFloat; inline;
 operator ** (A: TCubicBezier2; B: TVectorFloat): TVector2; inline;
@@ -92,6 +96,8 @@ operator / (A: TVector2; B: TVectorFloat): TVector2; inline;
 operator / (A: TVector3; B: TVectorFloat): TVector3; inline;
 operator / (A: TVector4; B: TVectorFloat): TVector4; inline;
 
+operator := (A: TVector2): TVector2f; inline;
+operator := (A: TVector2f): TVector2; inline;
 operator := (A: TVector3): TVector3f; inline;
 operator := (A: TVector3f): TVector3; inline;
 operator := (A: TVector4): TVector4f; inline;
@@ -104,9 +110,9 @@ operator = (A, B: TVector4): Boolean; inline;
 function Normalize(const Vec2: TVector2): TVector2; inline;
 function Normalize(const Vec3: TVector3): TVector3; inline;
 function Normalize(const Vec4: TVector4): TVector4; inline;
-procedure NormalizeInPlace(var Vec2: TVector2); inline;
-procedure NormalizeInPlace(var Vec3: TVector3); inline;
-procedure NormalizeInPlace(var Vec4: TVector4); inline;
+function NormalizeInPlace(var Vec2: TVector2): TVectorFloat; inline;
+function NormalizeInPlace(var Vec3: TVector3): TVectorFloat; inline;
+function NormalizeInPlace(var Vec4: TVector4): TVectorFloat; inline;
 
 function VLength(Vec2: TVector2): TVectorFloat; inline;
 function VLength(Vec3: TVector3): TVectorFloat; inline;
@@ -124,16 +130,34 @@ function CubicBezier4(const P1, P2, P3, P4: TVector4): TCubicBezier4; inline;
 function Vector2(X: TVectorFloat; Y: TVectorFloat): TVector2; inline;
 function Vector3(X: TVectorFloat; Y: TVectorFloat; Z: TVectorFloat): TVector3; inline;
 function Vector3(Vec2: TVector2; Z: TVectorFloat): TVector3; inline;
+function Vector3f(Vec3: TVector3): TVector3f; inline;
+function Vector3f(X, Y, Z: Single): TVector3f; inline;
 function Vector4(Vec2: TVector2; Z, W: TVectorFloat): TVector4; inline;
 function Vector4(Vec3: TVector3; W: TVectorFloat): TVector4; inline;
 function Vector4(X, Y, Z, W: TVectorFloat): TVector4; inline;
+function Vector4f(Vec4: TVector4): TVector4f; inline;
+function Vector4f(X, Y, Z: Single; W: Single = 1.0): TVector4f; inline;
+
+function RotationMatrix(Axis: TVector3; Angle: TVectorFloat): TMatrix3;
 
 function VecToAngle(Vec2: TVector2): TVectorFloat; inline;
 function AngleToVec(a: TVectorFloat): TVector2; inline;
 
 function FormatVector(Vec2: TVector2): String; inline;
 function FormatVector(Vec3: TVector3): String; inline;
+function FormatVector(Vec3: TVector3f): String; inline;
 function FormatVector(Vec4: TVector4): String; inline;
+function FormatVector(Vec4: TVector4f): String; inline;
+
+const
+  V_EX : TVector3 = (X: 1.0; Y: 0.0; Z: 0.0);
+  V_EY : TVector3 = (X: 0.0; Y: 1.0; Z: 0.0);
+  V_EZ : TVector3 = (X: 0.0; Y: 0.0; Z: 1.0);
+
+  V_EUP : TVector3 = (X: 0.0; Y: 0.0; Z: 1.0);
+
+const
+  IdentityMatrix3 : TMatrix3 = (1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0);
 
 implementation
 
@@ -257,6 +281,13 @@ begin
   Result := B * A;
 end;
 
+operator * (A: TMatrix3; B: TVector3): TVector3; inline;
+begin
+  Result.X := A[0] * B.X + A[3] * B.Y + A[6] * B.Z;
+  Result.Y := A[1] * B.X + A[4] * B.Y + A[7] * B.Z;
+  Result.Z := A[2] * B.X + A[5] * B.Z + A[8] * B.Z;
+end;
+
 operator ** (A, B: TVector3): TVector3;
 begin
   Result.X := A.Y * B.Z - A.Z * B.Y;
@@ -322,6 +353,18 @@ begin
   Result.W := A.W / B;
 end;
 
+operator := (A: TVector2): TVector2f; inline;
+begin
+  Result[0] := A.X;
+  Result[1] := A.Y;
+end;
+
+operator := (A: TVector2f): TVector2; inline;
+begin
+  Result.X := A[0];
+  Result.Y := A[1];
+end;
+
 operator := (A: TVector3): TVector3f;
 begin
   Result[0] := A.X;
@@ -385,33 +428,28 @@ begin
   NormalizeInPlace(Result);
 end;
 
-procedure NormalizeInPlace(var Vec2: TVector2); inline;
-var
-  Len: TVectorFloat;
+function NormalizeInPlace(var Vec2: TVector2): TVectorFloat; inline;
 begin
-  Len := VLength(Vec2);
-  Vec2.X := Vec2.X / Len;
-  Vec2.Y := Vec2.Y / Len;
+  Result := VLength(Vec2);
+  Vec2.X := Vec2.X / Result;
+  Vec2.Y := Vec2.Y / Result;
 end;
 
-procedure NormalizeInPlace(var Vec3: TVector3);
-var
-  Len: TVectorFloat;
+function NormalizeInPlace(var Vec3: TVector3): TVectorFloat;
 begin
-  Len := VLength(Vec3);
-  Vec3.X := Vec3.X / Len;
-  Vec3.Y := Vec3.Y / Len;
-  Vec3.Z := Vec3.Z / Len;
+  Result := VLength(Vec3);
+  Vec3.X := Vec3.X / Result;
+  Vec3.Y := Vec3.Y / Result;
+  Vec3.Z := Vec3.Z / Result;
 end;
 
-procedure NormalizeInPlace(var Vec4: TVector4);
-var
-  Len: TVectorFloat;
+function NormalizeInPlace(var Vec4: TVector4): TVectorFloat;
 begin
-  Len := VLength(Vec4);
-  Vec4.X := Vec4.X / Len;
-  Vec4.Y := Vec4.Y / Len;
-  Vec4.Z := Vec4.Z / Len;
+  Result := VLength(Vec4);
+  Vec4.X := Vec4.X / Result;
+  Vec4.Y := Vec4.Y / Result;
+  Vec4.Z := Vec4.Z / Result;
+  Vec4.W := Vec4.W / Result;
 end;
 
 function VLength(Vec2: TVector2): TVectorFloat; inline;
@@ -561,6 +599,20 @@ begin
   Result.Z := Z;
 end;
 
+function Vector3f(Vec3: TVector3): TVector3f; inline;
+begin
+  Result[0] := Vec3.X;
+  Result[1] := Vec3.Y;
+  Result[2] := Vec3.Z;
+end;
+
+function Vector3f(X, Y, Z: Single): TVector3f; inline;
+begin
+  Result[0] := X;
+  Result[1] := Y;
+  Result[2] := Z;
+end;
+
 function Vector4(Vec2: TVector2; Z, W: TVectorFloat): TVector4; inline;
 begin
   Result.Vec2 := Vec2;
@@ -580,6 +632,54 @@ begin
   Result.Y := Y;
   Result.Z := Z;
   Result.W := W;
+end;
+
+function Vector4f(Vec4: TVector4): TVector4f; inline;
+begin
+  Result[0] := Vec4.X;
+  Result[1] := Vec4.Y;
+  Result[2] := Vec4.Z;
+  Result[3] := Vec4.W;
+end;
+
+function Vector4f(X, Y, Z: Single; W: Single): TVector4f; inline;
+begin
+  Result[0] := X;
+  Result[1] := Y;
+  Result[2] := Z;
+  Result[3] := W;
+end;
+
+function RotationMatrix(Axis: TVector3; Angle: TVectorFloat): TMatrix3;
+var
+  RawSin, RawCos: float;
+  Sine, Cosine, OneMinusCosine: TVectorFloat;
+  Len: TVectorFloat;
+begin
+  sincos(Angle, RawSin, RawCos);
+  Sine := RawSin;
+  Cosine := RawCos;
+  OneMinusCosine := 1-RawCos;
+
+
+  Len := NormalizeInPlace(Axis);
+
+  if Len = 0.0 then
+    Exit(IdentityMatrix3)
+  else
+  begin
+    Result[0] := (OneMinusCosine * Sqr(Axis.X)) + Cosine;
+    Result[1] := (OneMinusCosine * Axis.X * Axis.Y) - (Axis.Z * Sine);
+    Result[2] := (OneMinusCosine * Axis.Z * Axis.X) + (Axis.Y * Sine);
+
+    Result[3] := (OneMinusCosine * Axis.X * Axis.Y) + (Axis.Z * Sine);
+    Result[4] := (OneMinusCosine * Sqr(Axis.Y)) + Cosine;
+    Result[5] := (OneMinusCosine * Axis.Y * Axis.Z) - (Axis.X * Sine);
+
+    Result[6] := (OneMinusCosine * Axis.Z * Axis.X) - (Axis.Y * Sine);
+    Result[7] := (OneMinusCosine * Axis.Y * Axis.Z) + (Axis.X * Sine);
+    Result[8] := (OneMinusCosine * Sqr(Axis.Z)) + Cosine;
+  end;
 end;
 
 function VecToAngle(Vec2: TVector2): TVectorFloat; inline;
@@ -613,9 +713,19 @@ begin
   Result := Format('vec3(%.3f, %.3f, %.3f)', [Vec3.X, Vec3.Y, Vec3.Z]);
 end;
 
+function FormatVector(Vec3: TVector3f): String; inline;
+begin
+  Result := Format('vec3(%.3f, %.3f, %.3f)', [Vec3[0], Vec3[1], Vec3[2]]);
+end;
+
 function FormatVector(Vec4: TVector4): String;
 begin
   Result := Format('vec4(%.3f, %.3f, %.3f, %.3f)', [Vec4.X, Vec4.Y, Vec4.Z, Vec4.W]);
+end;
+
+function FormatVector(Vec4: TVector4f): String; inline;
+begin
+  Result := Format('vec4(%.3f, %.3f, %.3f, %.3f)', [Vec4[0], Vec4[1], Vec4[2], Vec4[3]]);
 end;
 
 end.
