@@ -150,12 +150,34 @@ begin
   case Button.button of
     4: if Mode = kmPress then
     begin
-      FMoveAccel.Z -= 50.0 * FMove.Z;
+      if SDL_GetKeyState(nil)[SDLK_LCTRL] or SDL_GetKeyState(nil)[SDLK_RCTRL] <> 0 then
+        FRotAccel.X -= 1000.0
+      else
+        FMoveAccel.Z -= 50.0 * FMove.Z;
     end;
 
     5: if Mode = kmPress then
     begin
-      FMoveAccel.Z += 50.0 * FMove.Z;
+      if SDL_GetKeyState(nil)[SDLK_LCTRL] or SDL_GetKeyState(nil)[SDLK_RCTRL] <> 0 then
+        FRotAccel.X += 1000.0
+      else
+        FMoveAccel.Z += 50.0 * FMove.Z;
+    end;
+
+    6: if Mode = kmPress then
+    begin
+      if SDL_GetKeyState(nil)[SDLK_LSHIFT] or SDL_GetKeyState(nil)[SDLK_RSHIFT] <> 0 then
+        FMoveAccel -= Vector3(AngleToVec(-FRot.Y * Pi / 180.0) * 10.0 * FMove.Z * 2.0, 0.0)
+      else
+        FRotAccel.Y -= 1000.0;
+    end;
+
+    7: if Mode = kmPress then
+    begin
+      if SDL_GetKeyState(nil)[SDLK_LSHIFT] or SDL_GetKeyState(nil)[SDLK_RSHIFT] <> 0 then
+        FMoveAccel += Vector3(AngleToVec(-FRot.Y * Pi / 180.0) * 10.0 * FMove.Z * 2.0, 0.0)
+      else
+        FRotAccel.Y += 1000.0;
     end;
   end;
 end;

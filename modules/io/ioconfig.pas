@@ -49,6 +49,9 @@ type
     property Video: TTT3DSettingsVideo read FVideo;
   end;
 
+var
+  Config: TTT3DSettings;
+
 implementation
 
 { TTT3DPaths }
@@ -91,6 +94,12 @@ end;
 
 initialization
 XDG := TTT3DPaths;
+
+Config := TTT3DSettings.Create;
+
+finalization
+Config.Save;
+FreeAndNil(Config);
 
 end.
 

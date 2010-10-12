@@ -20,9 +20,15 @@ type
   TuiMouseButton = procedure (Sender: TObject; Button: TsdlMouseButtonEventData; Mode: TsdlKeyActionMode) of object;
   TuiKeypress = procedure (Sender: TObject; Sym: TSDL_KeySym; Mode: TsdlKeyActionMode; var Handled: Boolean) of object;
 
+  TuiWidgetState = (wsNormal, wsHover, wsPressing, wsDown);
+
+  TuiRect = record
+    X, Y, W, H: Integer;
+  end;
+
   { TuiMaterials }
 
-  TuiMaterials = class (TGTBaseObject)
+  TuiMaterials = class (TObject)
   public
     constructor Create(ABufferToUse: TGLGeometryBuffer = nil; ABufferOwned: Boolean = False);
     destructor Destroy; override;
@@ -86,9 +92,11 @@ type
 
   TuiSurface = class;
 
+  { TuiSurface }
+
   TuiSurface = class (TGTMultiRefObject)
   public
-    procedure UpdateGeometry(const AWidget: TuiWidget;
+    procedure UpdateGeometry(const ARect: TuiRect;
       const ABuffer: TGLGeometryBuffer; const AFormat: TGLGeometryFormatP4C4T2;
       var Geometry: TGLGeometryObject); virtual; abstract;
   end;
@@ -110,7 +118,7 @@ type
   public
     property QuadInfo[I: TuiSurface3x3Position]: TuiQuadInfo read GetQuadInfo;
   public
-    procedure UpdateGeometry(const AWidget: TuiWidget;
+    procedure UpdateGeometry(const ARect: TuiRect;
       const ABuffer: TGLGeometryBuffer; const AFormat: TGLGeometryFormatP4C4T2;
       var Geometry: TGLGeometryObject); override;
   published
@@ -204,6 +212,7 @@ type
     function ClientToAbsolute(const APoint: TPoint): TPoint;
     function ClientToParent(const APoint: TPoint): TPoint;
     procedure DeleteChildren;
+    function GetUIRect: TuiRect;
     procedure Invalidate;
     procedure LoadFromXML(const XMLNode: TxmlNode; Context: IGTLoaderContext =
        nil); override;
@@ -273,6 +282,8 @@ type
     constructor Create; override;
     destructor Destroy; override;
   private
+    FBackground: TuiSurfaceReference;
+    FBackgroundGeometry: TGLGeometryObject;
     FFocused: TuiWidget;
     FMouseGrabber: TuiWidget;
     FMouseGrabButton: UInt8;
@@ -282,8 +293,11 @@ type
     function DoAcceptChild(const AChild: TuiWidget): Boolean; override;
     procedure DoAlign; override;
     procedure DoRenderBackground; override;
+    procedure DoRenderBackgroundGeometry;
     procedure DoUpdate(const ATimeInterval: Double); override;
+    procedure DoUpdateBackgroundGeometry;
   public
+    property Background: TuiSurfaceReference read FBackground;
     property Focused: TuiWidget read FFocused;
   public
     procedure DeliverKeypress(Sym: TSDL_KeySym; Mode: TsdlKeyActionMode);
@@ -295,7 +309,17 @@ type
     property OnUpdate: TuiUpdate read FOnUpdate write FOnUpdate;
   end;
 
+function uiRect(X, Y, W, H: Integer): TuiRect; inline;
+
 implementation
+
+function uiRect(X, Y, W, H: Integer): TuiRect; inline;
+begin
+  Result.X := X;
+  Result.Y := Y;
+  Result.W := W;
+  Result.H := H;
+end;
 
 { TuiMaterials }
 
@@ -435,7 +459,7 @@ begin
   Result := FQuadInfos[I];
 end;
 
-procedure TuiSurface3x3.UpdateGeometry(const AWidget: TuiWidget;
+procedure TuiSurface3x3.UpdateGeometry(const ARect: TuiRect;
   const ABuffer: TGLGeometryBuffer; const AFormat: TGLGeometryFormatP4C4T2;
   var Geometry: TGLGeometryObject);
 var
@@ -444,19 +468,16 @@ var
   Format: TGLGeometryFormatP4C4T2;
   vTopLeft: TVector2;
   vInnerTL, vInnerTR, vInnerBL, vInnerBR: TVector4;
-  P: TPoint;
 begin
   if (Geometry = nil) then
     Geometry := TGLGeometryQuadsForTris.Create(ABuffer, AFormat, 9);
-  P := AWidget.ClientToAbsolute(Point(0, 0));
-  vTopLeft.X := P.X;
-  vTopLeft.Y := P.Y;
+  vTopLeft := Vector2(ARect.X, ARect.Y);
   Format := Geometry.Format as TGLGeometryFormatP4C4T2;
   Map := TGLGeometryBufferOffsetMap.Create(Geometry.Map);
   try
     vInnerTL := Vector4(vTopLeft + Vector2(FLeftMargin, FTopMargin), 0.0, 1.0);
-    vInnerTR := Vector4(vInnerTL.Vec2 + Vector2(AWidget.AbsWidth - (FLeftMargin + FRightMargin), 0.0), 0.0, 1.0);
-    vInnerBL := Vector4(vInnerTL.Vec2 + Vector2(0.0, AWidget.AbsHeight - (FTopMargin + FBottomMargin)), 0.0, 1.0);
+    vInnerTR := Vector4(vInnerTL.Vec2 + Vector2(ARect.W - (FLeftMargin + FRightMargin), 0.0), 0.0, 1.0);
+    vInnerBL := Vector4(vInnerTL.Vec2 + Vector2(0.0, ARect.H - (FTopMargin + FBottomMargin)), 0.0, 1.0);
     vInnerBR := Vector4(vInnerTR.X, vInnerBL.Y, 0.0, 1.0);
     with Format do
     begin
@@ -557,6 +578,7 @@ destructor TuiWidget.Destroy;
 begin
   DeleteChildren;
   FChildren.Free;
+  SetMaterials(nil);
   inherited Destroy;
 end;
 
@@ -681,16 +703,15 @@ end;
 
 function TuiWidget.DoHitTest(const APoint: TPoint): TuiWidget;
 var
-  P: TPoint;
   I: Integer;
   Hit: TuiWidget;
 begin
-  if (P.X < FAbsLeft) or (P.Y < FAbsTop) or (P.X >= FAbsWidth) or (P.Y >= FAbsHeight) then
+  if (APoint.X < FAbsLeft) or (APoint.Y < FAbsTop) or (APoint.X >= FAbsWidth) or (APoint.Y >= FAbsHeight) then
     Exit(nil);
 
   for I := 0 to FChildren.Count - 1 do
   begin
-    Hit := FChildren[I].DoHitTest(P);
+    Hit := FChildren[I].DoHitTest(APoint);
     if Hit <> nil then
       Exit(Hit);
   end;
@@ -807,6 +828,11 @@ begin
   for I := 0 to FChildren.Count - 1 do
     FChildren[I].Free;
   FChildren.Clear;
+end;
+
+function TuiWidget.GetUIRect: TuiRect;
+begin
+  Result := uiRect(FAbsLeft, FAbsTop, FAbsWidth, FAbsHeight);
 end;
 
 procedure TuiWidget.Invalidate;
@@ -978,7 +1004,7 @@ end;
 procedure TuiButton.Update;
 begin
   if (FSurface.Obj <> nil) and (FMaterials <> nil) then
-    FSurface.Obj.UpdateGeometry(Self, FMaterials.Buffer, FMaterials.Format, FGeometry);
+    FSurface.Obj.UpdateGeometry(uiRect(FAbsLeft, FAbsTop, FAbsWidth, FAbsHeight), FMaterials.Buffer, FMaterials.Format, FGeometry);
 end;
 
 { TuiRootLayer }
@@ -987,10 +1013,13 @@ constructor TuiRootLayer.Create;
 begin
   inherited Create;
   FAnimated := True;
+  FBackground := TuiSurfaceReference.Create;
 end;
 
 destructor TuiRootLayer.Destroy;
 begin
+  FreeAndNil(FBackgroundGeometry);
+  FBackground.Free;
   inherited Destroy;
 end;
 
@@ -1009,14 +1038,28 @@ end;
 
 procedure TuiRootLayer.DoRenderBackground;
 begin
+  DoRenderBackgroundGeometry;
   if Assigned(FOnRender) then
     FOnRender(Self);
 end;
 
+procedure TuiRootLayer.DoRenderBackgroundGeometry;
+begin
+  if FBackgroundGeometry <> nil then
+    FBackgroundGeometry.DrawDirect(GL_TRIANGLES);
+end;
+
 procedure TuiRootLayer.DoUpdate(const ATimeInterval: Double);
 begin
+  DoUpdateBackgroundGeometry;
   if Assigned(FOnUpdate) then
     FOnUpdate(Self, ATimeInterval);
+end;
+
+procedure TuiRootLayer.DoUpdateBackgroundGeometry;
+begin
+  if FBackground.Obj <> nil then
+    FBackground.Obj.UpdateGeometry(GetUIRect, FMaterials.Buffer, FMaterials.Format, FBackgroundGeometry);
 end;
 
 procedure TuiRootLayer.DeliverKeypress(Sym: TSDL_KeySym; Mode: TsdlKeyActionMode
@@ -1025,10 +1068,10 @@ var
   Handled: Boolean;
 begin
   Handled := False;
-  if FFocused = nil then
-    DoKeypress(Sym, Mode, Handled);
-  if not Handled then
+  if FFocused <> nil then
     FFocused.DoKeypress(Sym, Mode, Handled);
+  if not Handled then
+    DoKeypress(Sym, Mode, Handled);
 end;
 
 procedure TuiRootLayer.DeliverMouseButton(Button: TsdlMouseButtonEventData;
@@ -1048,26 +1091,24 @@ begin
   end;
   Hit := DoHitTest(Point(Button.x, Button.y));
   if Button.button = 1 then
+    FFocused := Hit;
+  if Hit <> nil then
   begin
-    if Hit <> nil then
-      FFocused := Hit;
-  end;
-  if Mode = kmPress then
-  begin
-    if FMouseGrabber = nil then
+    if (FMouseGrabber = nil) and (Mode = kmPress) then
     begin
       FMouseGrabber := Hit;
       FMouseGrabButton := Button.button;
     end;
+    Button.x -= Hit.AbsLeft;
+    Button.y -= Hit.AbsTop;
+    Hit.DoMouseButton(Button, Mode);
   end;
-  Button.x -= Hit.AbsLeft;
-  Button.y -= Hit.AbsTop;
-  Hit.DoMouseButton(Button, Mode);
 end;
 
 procedure TuiRootLayer.DeliverMouseMotion(Motion: TsdlMouseMotionEventData);
 var
   Hit: TuiWidget;
+  P: TPoint;
 begin
   if FMouseGrabber <> nil then
   begin
@@ -1077,13 +1118,14 @@ begin
   end
   else
   begin
-    Hit := DoHitTest(Point(Motion.x, Motion.y));
+    P := Point(Motion.x, Motion.y);
+    Hit := DoHitTest(P);
     if Hit <> nil then
     begin
       Motion.x -= Hit.AbsLeft;
       Motion.y -= Hit.AbsTop;
+      Hit.DoMouseMotion(Motion);
     end;
-    Hit.DoMouseMotion(Motion);
   end;
 end;
 
