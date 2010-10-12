@@ -1106,21 +1106,21 @@ begin
     begin
       if (X and 1) = 1 then
       begin
-        Result[IJ] := AVBIndicies[IV(X, Y)];
+        Result[IJ] := AVBIndicies[IV(X+1, Y+1)];
         Result[IJ+1] := AVBIndicies[IV(X, Y+1)];
-        Result[IJ+2] := AVBIndicies[IV(X+1, Y+1)];
-        Result[IJ+3] := AVBIndicies[IV(X, Y)];
+        Result[IJ+2] := AVBIndicies[IV(X, Y)];
+        Result[IJ+3] := AVBIndicies[IV(X+1, Y)];
         Result[IJ+4] := AVBIndicies[IV(X+1, Y+1)];
-        Result[IJ+5] := AVBIndicies[IV(X+1, Y)];
+        Result[IJ+5] := AVBIndicies[IV(X, Y)];
       end
       else
       begin
-        Result[IJ] := AVBIndicies[IV(X, Y)];
+        Result[IJ] := AVBIndicies[IV(X+1, Y)];
         Result[IJ+1] := AVBIndicies[IV(X, Y+1)];
-        Result[IJ+2] := AVBIndicies[IV(X+1, Y)];
-        Result[IJ+3] := AVBIndicies[IV(X+1, Y)];
+        Result[IJ+2] := AVBIndicies[IV(X, Y)];
+        Result[IJ+3] := AVBIndicies[IV(X+1, Y+1)];
         Result[IJ+4] := AVBIndicies[IV(X, Y+1)];
-        Result[IJ+5] := AVBIndicies[IV(X+1, Y+1)];
+        Result[IJ+5] := AVBIndicies[IV(X+1, Y)];
       end;
       Inc(IJ, 6);
     end;

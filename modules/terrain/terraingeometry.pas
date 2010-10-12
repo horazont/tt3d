@@ -5,11 +5,10 @@ unit TerrainGeometry;
 interface
 
 uses
-  Classes, SysUtils, GLGeometry, Geometry, dglOpenGL;
+  Classes, SysUtils, GLGeometry, Geometry, dglOpenGL, math;
 
 const
-  TERRAIN_SECTION_WIDTH = 32;
-  TERRAIN_SECTION_HEIGHT = 32;
+  TERRAIN_SECTION_SIZE = 64;
 
 type
   ETerrainError = class (Exception);
@@ -35,6 +34,10 @@ type
 
 implementation
 
+{$ifopt Q+}
+{$define WasQ}
+{$Q-}
+{$endif}
 function Noise(const X, Y: Integer): Double;
 var
   N: Integer;
@@ -43,6 +46,10 @@ begin
   N := (N shl 13) xor N;
   Exit(1.0 - ( ( n * ( n * n * 15731 + 789221) + 1376312589) and $7fffffff) / 1073741824.0);
 end;
+{$ifdef WasQ}
+{$undef WasQ}
+{$Q+}
+{$endif}
 
 (*    corners = ( Noise(x-1, y-1)+Noise(x+1, y-1)+Noise(x-1, y+1)+Noise(x+1, y+1) ) / 16
     sides   = ( Noise(x-1, y)  +Noise(x+1, y)  +Noise(x, y-1)  +Noise(x, y+1) ) /  8
@@ -60,14 +67,25 @@ begin
   Exit(Corners + Sides + Center);
 end;
 
-function Interpolate_Lin(const V1, V2: Double; const F: Double): Double; inline;
+function Interpolate_Lin(const V1, V2: Double; const F: Double): Double;
 begin
   Exit(V1 * F + V2 * (1.0-F));
 end;
 
-function Interpolate_Cos(const V1, V2: Double; const F: Double): Double; inline;
+function Interpolate_Cos(const V1, V2: Double; const F: Double): Double;
 begin
   Exit(Interpolate_Lin(V1, V2, Cos(F * Pi / 2.0)));
+end;
+
+function Interpolate_Cubic(const V0, V1, V2, V3: Double; const X: Double): Double;
+var
+  P, Q, R, S: Double;
+begin
+  P := (V3 - V2) - (V0 - V1);
+  Q := (V0 - V1) - P;
+  R := V2 - V0;
+  S := V1;
+  Exit(P * power(X, 3) + Q * sqr(x) + R * x + S);
 end;
 
 function InterpolatedNoise(const X, Y: Double): Double;
@@ -78,13 +96,14 @@ var
   IV: array [0..1] of Double;
 begin
   IX := Trunc(X);
-  FX := frac(X);
+  FX := Abs(X - IX);
+  //WriteLn(Format('%.4f %.4f', [X, FX]));
   IY := Trunc(Y);
-  FY := frac(Y);
+  FY := Abs(Y - IY);
 
-  V[0] := SmoothedNoise(IX, IY);
+  V[0] := SmoothedNoise(IX,     IY);
   V[1] := SmoothedNoise(IX + 1, IY);
-  V[2] := SmoothedNoise(IX, IY + 1);
+  V[2] := SmoothedNoise(IX,     IY + 1);
   V[3] := SmoothedNoise(IX + 1, IY + 1);
 
   IV[0] := Interpolate_Cos(V[0], V[1], FX);
@@ -116,15 +135,16 @@ end;
 
 constructor TTerrain.Create(const AWidth, AHeight: Integer);
 var
-  I, C, X, Y, XRoot, YRoot: Integer;
+  I, C, X, Y, XRoot, YRoot, XOffset, YOffset: Integer;
   Z: Double;
+  V: TVector2;
 begin
-  if (AWidth mod TERRAIN_SECTION_WIDTH <> 0) or (AHeight mod TERRAIN_SECTION_HEIGHT <> 0) then
-    raise ETerrainError.CreateFmt('Invalid terrain size %dx%d. Must be multiples of 64.', [AWidth, AHeight]);
+  if (AWidth mod TERRAIN_SECTION_SIZE <> 0) or (AHeight mod TERRAIN_SECTION_SIZE <> 0) then
+    raise ETerrainError.CreateFmt('Invalid terrain size %dx%d. Must be multiples of %d.', [AWidth, AHeight, TERRAIN_SECTION_SIZE]);
   inherited Create;
   FWidth := AWidth;
   FHeight := AHeight;
-  C := (AWidth div TERRAIN_SECTION_WIDTH) * (AHeight div TERRAIN_SECTION_HEIGHT);
+  C := (AWidth div TERRAIN_SECTION_SIZE) * (AHeight div TERRAIN_SECTION_SIZE);
   SetLength(FSections, C);
 
   FBuffer := TGLGeometryBuffer.Create(TGLGeometryFormatP4C4T2N3F.GetNeededVertexSize);
@@ -132,32 +152,35 @@ begin
   FStreamIndexBuffer := TGLStreamIndexBuffer.Create;
   FStaticIndexBuffer := TGLIndexBuffer.Create;
 
+  XOffset := 0;
+  YOffset := 0;
   XRoot := 0;
   YRoot := 0;
   for I := 0 to High(FSections) do
   begin
     FSections[I] := TGLGeometryTerrainSectionForTris.Create(FBuffer, FFormat,
-      TERRAIN_SECTION_WIDTH + 1, TERRAIN_SECTION_HEIGHT + 1, FStaticIndexBuffer,
+      TERRAIN_SECTION_SIZE + 1, TERRAIN_SECTION_SIZE + 1, FStaticIndexBuffer,
       FStreamIndexBuffer);
 
     with TGLGeometryFormatP4C4T2N3F(FSections[I].Format) do
     begin
       UseMap(FSections[I].Map);
-      for Y := 0 to TERRAIN_SECTION_HEIGHT do
-        for X := 0 to TERRAIN_SECTION_WIDTH do
+      for Y := 0 to TERRAIN_SECTION_SIZE do
+        for X := 0 to TERRAIN_SECTION_SIZE do
         begin
           //Z := (Sin((XRoot + X) / 32.0) * Cos((YRoot + Y) / 32.0) + 1.0) * 2.0 + (Random - 0.5) / 8.0;
-          Z := Perlin2D(Vector2(XRoot + X, YRoot + Y) / 5.0, 0.8, 5) + 1.0;
-          Position[X + Y * (TERRAIN_SECTION_WIDTH+1)] := Vector4(XRoot + X, YRoot + Y, Z, 1.0);
-          Z /= 2.0;
-          Color[X + Y * (TERRAIN_SECTION_WIDTH+1)] := Vector4(Z, Z, Z, 1.0);
+          V := Vector2( XOffset + XRoot + X, YOffset + YRoot + Y);
+          Z := (Perlin2D((V + Vector2(318, 217)) / 29.0, 0.35, 9) + 1.0) * 4.0;
+          Position[X + Y * (TERRAIN_SECTION_SIZE+1)] := Vector4(V, Z, 1.0);
+          Z /= 8.0;
+          Color[X + Y * (TERRAIN_SECTION_SIZE+1)] := Vector4(Z, Z, Z, 1.0);
         end;
     end;
 
-    Inc(XRoot, TERRAIN_SECTION_WIDTH);
+    Inc(XRoot, TERRAIN_SECTION_SIZE);
     if XRoot >= AWidth then
     begin
-      Inc(YRoot, TERRAIN_SECTION_HEIGHT);
+      Inc(YRoot, TERRAIN_SECTION_SIZE);
       XRoot := 0;
     end;
   end;

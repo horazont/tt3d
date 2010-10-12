@@ -30,8 +30,6 @@ type
     FRotateTarget: TVector2;
     FRotating: Boolean;
     FZ: TVectorFloat;
-
-    FTerrain: TTerrain;
   protected
     procedure DoKeypress(Sym: TSDL_KeySym; Mode: TsdlKeyActionMode;
        var Handled: Boolean); override;
@@ -112,8 +110,6 @@ begin
 
     UseMap(nil);
   end;
-
-  FTerrain := TTerrain.Create(128, 128);
 end;
 
 destructor TTT3DScene.Destroy;
@@ -278,6 +274,8 @@ begin
   SetupPerspective(AbsLeft, AbsWidth, AbsTop, AbsHeight, 1.0, 1000.0, Config.Video.FOV);
   glDisable(GL_SCISSOR_TEST);
   glEnable(GL_DEPTH_TEST);
+  glEnable(GL_CULL_FACE);
+  glCullFace(GL_CCW);
 
   glTranslatef(0.0, 0.0, FMove.Z);
   glRotatef(FRot.X, 1.0, 0.0, 0.0);
@@ -288,14 +286,11 @@ begin
   FDebugMaterial.Render(GL_LINES);
   FDebugMaterial.UnbindForRendering;
 
-  FTerrain.BindForRendering;
-  FTerrain.Render;
-  FTerrain.UnbindForRendering;
-
   SetupOrthoDefault(0, Config.Video.Width, 0, Config.Video.Height);
   glClear(GL_DEPTH_BUFFER_BIT);
   glDisable(GL_DEPTH_TEST);
   glEnable(GL_SCISSOR_TEST);
+  glDisable(GL_CULL_FACE);
 
   DoRenderBackgroundGeometry;
 end;
