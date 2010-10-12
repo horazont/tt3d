@@ -49,6 +49,9 @@ type
     property Video: TTT3DSettingsVideo read FVideo;
   end;
 
+var
+  Config: TTT3DSettings;
+
 implementation
 
 { TTT3DPaths }
@@ -83,14 +86,20 @@ constructor TTT3DSettingsVideo.Create;
 begin
   inherited Create;
   FFOV := 60.0;
-  FFullscreen := False;
+  FFullscreen := True;
   FBPP := 32;
-  FHeight := 768;
-  FWidth := 1024;
+  FHeight := 800;
+  FWidth := 1280;
 end;
 
 initialization
 XDG := TTT3DPaths;
+
+Config := TTT3DSettings.Create;
+
+finalization
+Config.Save;
+FreeAndNil(Config);
 
 end.
 

@@ -304,6 +304,23 @@ type
        ): TVertexIndicies; override;
   end;
 
+  { TGLGeometryTerrainSection }
+
+  { TGLGeometryTerrainSectionForTris }
+
+  TGLGeometryTerrainSectionForTris = class (TGLGeometryObject)
+  public
+    constructor Create(const ABuffer: TGLGeometryBuffer;
+       const AFormat: TGLGeometryFormat; AWidth, AHeight: Integer;
+       AStaticIndexBuffer: TGLIndexBuffer = nil;
+       AStreamIndexBuffer: TGLStreamIndexBuffer = nil);
+  private
+    FWidth, FHeight: Integer;
+  protected
+    function GetIndexBufferIndicies(const AVBIndicies: TVertexIndicies
+       ): TVertexIndicies; override;
+  end;
+
 procedure RaiseLastGLError;
 
 implementation
@@ -984,7 +1001,7 @@ begin
   if FFormat.CurrentMap = FMap then
     FFormat.UseMap(nil);
   FMap.Free;
-  FStaticIndexBuffer.RemoveIndicies(FStaticIndexHandle);
+  SetStaticIndexBuffer(nil);
   FGeometryBuffer.DeleteVertices(FVBIndicies);
   inherited Destroy;
 end;
@@ -1052,6 +1069,61 @@ begin
     Result[II+3] := AVBIndicies[IV];
     Result[II+4] := AVBIndicies[IV+2];
     Result[II+5] := AVBIndicies[IV+3];
+  end;
+end;
+
+{ TGLGeometryTerrainSectionForTris }
+
+constructor TGLGeometryTerrainSectionForTris.Create(
+  const ABuffer: TGLGeometryBuffer; const AFormat: TGLGeometryFormat; AWidth,
+  AHeight: Integer; AStaticIndexBuffer: TGLIndexBuffer;
+  AStreamIndexBuffer: TGLStreamIndexBuffer);
+begin
+  FWidth := AWidth;
+  FHeight := AHeight;
+  inherited Create(ABuffer, AFormat, AWidth * AHeight, AStaticIndexBuffer, AStreamIndexBuffer);
+end;
+
+function TGLGeometryTerrainSectionForTris.GetIndexBufferIndicies(
+  const AVBIndicies: TVertexIndicies): TVertexIndicies;
+var
+  X, Y: Integer;
+  I, IJ: Integer;
+
+  function IV(X, Y: Integer): Integer; inline;
+  begin
+    Result := X + Y * FWidth;
+  end;
+
+begin
+  WriteLn(FWidth, ' ', FHeight);
+  SetLength(Result, (FWidth - 1) * (FHeight - 1) * 6);
+
+  IJ := 0;
+  for Y := 0 to FHeight - 2 do
+  begin
+    for X := 0 to FWidth - 2 do
+    begin
+      if (X and 1) = 1 then
+      begin
+        Result[IJ] := AVBIndicies[IV(X, Y)];
+        Result[IJ+1] := AVBIndicies[IV(X, Y+1)];
+        Result[IJ+2] := AVBIndicies[IV(X+1, Y+1)];
+        Result[IJ+3] := AVBIndicies[IV(X, Y)];
+        Result[IJ+4] := AVBIndicies[IV(X+1, Y+1)];
+        Result[IJ+5] := AVBIndicies[IV(X+1, Y)];
+      end
+      else
+      begin
+        Result[IJ] := AVBIndicies[IV(X, Y)];
+        Result[IJ+1] := AVBIndicies[IV(X, Y+1)];
+        Result[IJ+2] := AVBIndicies[IV(X+1, Y)];
+        Result[IJ+3] := AVBIndicies[IV(X+1, Y)];
+        Result[IJ+4] := AVBIndicies[IV(X, Y+1)];
+        Result[IJ+5] := AVBIndicies[IV(X+1, Y+1)];
+      end;
+      Inc(IJ, 6);
+    end;
   end;
 end;
 

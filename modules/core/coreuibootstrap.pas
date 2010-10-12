@@ -6,7 +6,8 @@ interface
 
 uses
   Classes, SysUtils, ioSDL, sdl, ioLog, dglOpenGL, ioConfig, TransportGraph,
-  GTXDG, GLGeometry, Geometry, TransportGeometryGL, uiGL;
+  GTXDG, GLGeometry, Geometry, TransportGeometryGL, uiGL, coreScene, GLHelpers,
+  uiTT3D, GeometryColors, math;
 
 type
 
@@ -17,37 +18,22 @@ type
     constructor Create;
     destructor Destroy; override;
   private
-    FSettings: TTT3DSettings;
     FVideoInfo: PSDL_VideoInfo;
     FVideoFlags: Cardinal;
     FVideoSurface: PSDL_Surface;
-(*  private
-    FGeometryManager: TTransportGeometryManager;
-    FNodeA, FNodeB, FNodeC: TPathNode;*)
   private
     FUI: TuiRootLayer;
     FUIBuffer: TGLGeometryBuffer;
     FUIMaterials: TuiMaterials;
-  private
-    FDebugMaterial: TGLMaterial;
-    FDebugBuffer: TGLGeometryBuffer;
-    FAxis: TGLGeometryObject;
-    FGrid: TGLGeometryObject;
-
-    FMove, FMoveSpeed, FMoveAccel: TVector3;
-    FMoveTarget: TVector2;
-    FMoving: Boolean;
-
-    FRot, FRotSpeed, FRotAccel: TVector2;
-    FRotateTarget: TVector2;
-    FRotating: Boolean;
-    FZ: TVectorFloat;
+    FUITabs: TuiTT3DRootTabWidget;
+    FUIBackground: TuiSurface3x3;
+    FUITabsBG: TuiSurface3x3;
+    FUITheme: TuiTT3DTheme;
   protected
     function GetApplicationName: String; override;
     function GetApplicationVersion: TsdlApplicationVersion; override;
     function GetWindowTitle: String;
   public
-    procedure InitSettings; override;
     procedure InitSDL; override;
     procedure InitDGL; override;
     procedure InitData; override;
@@ -58,16 +44,11 @@ type
     procedure FreeDGL; override;
     procedure FreeSDL; override;
   public
-    property Settings: TTT3DSettings read FSettings;
-  public
     procedure HandleKeypress(Sym: TSDL_KeySym; Mode: TsdlKeyActionMode);
        override;
     procedure HandleMouseMotion(Motion: TsdlMouseMotionEventData); override;
     procedure HandleMouseButton(Button: TsdlMouseButtonEventData;
        Mode: TsdlKeyActionMode); override;
-    procedure SetupOrthoDefault(const Left, Right, Top, Bottom: Integer);
-    procedure SetupPerspective(const Left, Right, Top, Bottom: Integer;
-      const NearClip, FarClip: Double);
   end;
 
 implementation
@@ -81,8 +62,6 @@ end;
 
 destructor TTT3D.Destroy;
 begin
-  FSettings.Save;
-  FSettings.Free;
   inherited Destroy;
 end;
 
@@ -101,12 +80,6 @@ begin
   Result := 'tt3D';
 end;
 
-procedure TTT3D.InitSettings;
-begin
-  FSettings := TTT3DSettings.Create;
-  FSettings.Load;
-end;
-
 procedure TTT3D.InitSDL;
 begin
   FVideoInfo := SDL_GetVideoInfo;
@@ -120,7 +93,7 @@ begin
 
   FVideoFlags := SDL_OPENGL or SDL_HWPALETTE{ or SDL_DOUBLEBUF or SDL_FULLSCREEN};
 
-  if Settings.Video.Fullscreen then
+  if Config.Video.Fullscreen then
     FVideoFlags := FVideoFlags or SDL_FULLSCREEN;
   if FVideoInfo^.hw_available <> 0 then
   begin
@@ -151,7 +124,7 @@ begin
   {$ifdef Antialias}*)
 //  {$endif}
 
-  FVideoSurface := SDL_SetVideoMode(Settings.Video.Width, Settings.Video.Height, Settings.Video.BPP, FVideoFlags);
+  FVideoSurface := SDL_SetVideoMode(Config.Video.Width, Config.Video.Height, Config.Video.BPP, FVideoFlags);
   if FVideoSurface = nil then
   begin
     GeneralLog.LogFmt(lmetFatal, 'Couldn''t get video surface. Please install latest graphics drivers and retry. %s', 'TsdlStrategyGame.InitSDL', [SDL_GetError]);
@@ -188,8 +161,10 @@ begin
   glClearColor(0.5, 0.5, 0.5, 1.0);
   glClearDepth(1.0);
   glDisable(GL_CULL_FACE);
-  glEnable(GL_DEPTH_TEST);
   glDepthFunc(GL_LEQUAL);
+  glEnable(GL_BLEND);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  SetupOrthoDefault(0, Config.Video.Width, 0, Config.Video.Height);
   GeneralLog.Log(lmetInfo, 'OpenGL settings applied', 'TTT3D.InitDGL');
 
   GeneralLog.OutputExtensions;
@@ -202,226 +177,76 @@ end;
 
 procedure TTT3D.InitData;
 var
-  I: Integer;
+  BaseColorRGB, DarkerColorRGB: TVector4;
 begin
-  FZ := 0.0;
-  FMoving := False;
-  FRotating := False;
-
-  FMove := Vector3(0.0, 0.0, -5.0);
-  FMoveSpeed := Vector3(0.0, 0.0, 0.0);
-  FMoveAccel := Vector3(0.0, 0.0, 0.0);
-
-  FRot := Vector2(0.0, 0.0);
-  FRotSpeed := Vector2(0.0, 0.0);
-  FRotAccel := Vector2(0.0, 0.0);
-
-  FDebugBuffer := TGLGeometryBuffer.Create(SizeOf(Single) * 8, GL_DYNAMIC_DRAW);
-  FDebugMaterial := TGLMaterial.Create(FDebugBuffer, TGLGeometryFormatP4C4);
-
   FUIBuffer := TGLGeometryBuffer.Create(TGLGeometryFormatP4C4T2.GetNeededVertexSize, GL_DYNAMIC_DRAW);
   FUIMaterials := TuiMaterials.Create;
 
-  FUI := TuiRootLayer.Create;
-  FUI.SetAbsMetrics(0, 0, FSettings.Video.Width, FSettings.Video.Height);
+  FUITheme := TuiTT3DTheme.Create;
+  FUITheme.BaseColor := Vector4(Pi*4/3, 0.5, 0.5, 1.0);
+  FUITheme.ActiveColor := Vector4(Pi*2/3, 0.5, 0.5, 1.0);
 
-  (*FUI.Surface.Obj := TuiSurface3x3.Create;
-  with TuiSurface3x3(FUI.Surface.Obj) do
-  begin
-    TopMargin := 5.0;
-    LeftMargin := 5.0;
-    RightMargin := 5.0;
-    BottomMargin := 5.0;
-
-    TopLeft.Color := Vector4(1.0, 0.0, 0.0, 1.0);
-    TopCenter.Color := Vector4(1.0, 0.0, 0.0, 1.0);
-
-    TopRight.Color := Vector4(0.0, 1.0, 0.0, 1.0);
-    MiddleRight.Color := Vector4(0.0, 1.0, 0.0, 1.0);
-
-    BottomRight.Color := Vector4(1.0, 1.0, 1.0, 1.0);
-    BottomCenter.Color := Vector4(1.0, 1.0, 1.0, 1.0);
-
-    BottomLeft.Color := Vector4(0.0, 0.0, 1.0, 1.0);
-    MiddleLeft.Color := Vector4(0.0, 0.0, 1.0, 1.0);
-
-    Center.TopLeft.Color := Vector4(0.5, 0.0, 0.0, 1.0);
-    Center.TopRight.Color := Vector4(0.0, 0.5, 0.0, 1.0);
-    Center.BottomLeft.Color := Vector4(0.0, 0.0, 0.5, 1.0);
-    Center.BottomRight.Color := Vector4(0.5, 0.5, 0.5, 1.0);
-  end;        *)
-
+  FUI := TTT3DScene.Create;
   FUI.Materials := FUIMaterials;
-  FUI.Invalidate;
+  FUI.SetAbsMetrics(0, 0, Config.Video.Width, Config.Video.Height);
 
-  (*
-  FGeometryManager := TTransportGeometryManager.Create;
-  FGeometryManager.Materials.DebugLine := FDebugMaterial;
+  BaseColorRGB := Vector4(FUITheme.BaseColor.Vec3, 0.75);
+  BaseColorRGB.Y := 0.0;
+  DarkerColorRGB := HSVToRGB(Vector4(BaseColorRGB.X, 0.0, Min(1.0, BaseColorRGB.Z + 0.25), 0.75));
+  BaseColorRGB := HSVToRGB(BaseColorRGB);
 
-  FNodeA := TPathNode.Create;
-  FNodeA.Location := Vector3(-1.0, -0.5, 0.0);
-  FNodeA.SidePairs[PAIR_DEFAULT].Tangent := Vector3(1.0, 0.0, 0.0);
-  FNodeB := TPathNode.Create;
-  FNodeB.Location := Vector3(1.0, 0.5, 0.0);
-  FNodeB.SidePairs[PAIR_DEFAULT].Tangent := Vector3(1.0, 0.0, 0.0);
-  FNodeC := TPathNode.Create;
-  FNodeC.Location := Vector3(1.0, -0.5, 0.0);
-  FNodeC.SidePairs[PAIR_DEFAULT].Tangent := Vector3(-1.0, 0.0, 0.0);
-
-  FNodeA.Connect(
-    SideDefinition(PAIR_DEFAULT, sdA),
-    SideDefinition(PAIR_DEFAULT, sdB),
-    FNodeB,
-    TPathLinkBezier);
-
-  FNodeB.Connect(
-    SideDefinition(PAIR_DEFAULT, sdA),
-    SideDefinition(PAIR_DEFAULT, sdB),
-    FNodeC,
-    TPathLinkArc);
-
-  FNodeC.Connect(
-    SideDefinition(PAIR_DEFAULT, sdA),
-    SideDefinition(PAIR_DEFAULT, sdB),
-    FNodeA,
-    TPathLinkBezier
-  );     *)
-
-
-
-  FAxis := TGLGeometryObject.Create(FDebugMaterial, 6);
-  with FAxis.Format as TGLGeometryFormatP4C4 do
+  FUIBackground := TuiSurface3x3.Create;
+  with FUIBackground do
   begin
-    UseMap(FAxis.Map);
-
-    Position[0] :=  Vector4(-0.1, 0.0, 0.0, 1.0);
-    Color[0] :=     Vector4(0.1, 0.0, 0.0, 1.0);
-    Position[1] :=  Vector4(1.0, 0.0, 0.0, 1.0);
-    Color[1] :=     Vector4(1.0, 0.0, 0.0, 1.0);
-
-    Position[2] :=  Vector4(0.0, -0.1, 0.0, 1.0);
-    Color[2] :=     Vector4(0.0, 0.1, 0.0, 1.0);
-    Position[3] :=  Vector4(0.0, 1.0, 0.0, 1.0);
-    Color[3] :=     Vector4(0.0, 1.0, 0.0, 1.0);
-
-    Position[4] :=  Vector4(0.0, 0.0, -0.1, 1.0);
-    Color[4] :=     Vector4(0.0, 0.0, 0.1, 1.0);
-    Position[5] :=  Vector4(0.0, 0.0, 1.0, 1.0);
-    Color[5] :=     Vector4(0.0, 0.0, 1.0, 1.0);
-
-    UseMap(nil);
+    TopLeft.Color := DarkerColorRGB;
+(*    TopLeft.TopLeft.Color := DarkerColorRGB;
+    TopLeft.TopRight.Color := DarkerColorRGB;*)
+    TopCenter.Color := BaseColorRGB;
+    TopCenter.TopLeft.Color := DarkerColorRGB;
+    TopCenter.BottomLeft.Color := DarkerColorRGB;
+    TopRight.Color := BaseColorRGB;
+    MiddleLeft.Color := BaseColorRGB;
+    MiddleLeft.TopLeft.Color := DarkerColorRGB;
+    MiddleLeft.TopRight.Color := DarkerColorRGB;
+    BottomLeft.Color := BaseColorRGB;
+    Center.Color := Vector4(0.0, 0.0, 0.0, 0.0);
+    TopMargin := 17;
+    LeftMargin := 28;
   end;
 
-  FGrid := TGLGeometryObject.Create(FDebugMaterial, 84);
-  with FGrid.Format as TGLGeometryFormatP4C4 do
+  FUITabsBG := TuiSurface3x3.Create;
+  with FUITabsBG do
   begin
-    UseMap(FGrid.Map);
-
-    for I := -10 to 10 do
-    begin
-      Position[(I + 10)*2]    := Vector4(I, -10.0, 0.0, 1.0);
-      Color[(I + 10)*2]       := Vector4(0.25, 0.25, 0.25, 1.0);
-      Position[(I + 10)*2+1]  := Vector4(I, 10.0, 0.0, 1.0);
-      Color[(I + 10)*2+1]     := Vector4(0.25, 0.25, 0.25, 1.0);
-    end;
-
-    for I := -10 to 10 do
-    begin
-      Position[(I + 31)*2]    := Vector4(-10.0, I, 0.0, 1.0);
-      Color[(I + 31)*2]       := Vector4(0.25, 0.25, 0.25, 1.0);
-      Position[(I + 31)*2+1]  := Vector4(10.0, I, 0.0, 1.0);
-      Color[(I + 31)*2+1]     := Vector4(0.25, 0.25, 0.25, 1.0);
-    end;
-
-    UseMap(nil);
+    BaseColorRGB := HSVToRGB(FUITheme.BaseColor);
+    TopLeft.Color := BaseColorRGB;
+    TopCenter.Color := BaseColorRGB;
+    TopRight.Color := BaseColorRGB;
+    MiddleLeft.Color := BaseColorRGB;
+    MiddleRight.Color := BaseColorRGB;
+    BottomLeft.Color := BaseColorRGB;
+    BottomCenter.Color := BaseColorRGB;
+    BottomRight.Color := BaseColorRGB;
+    Center.Color := Vector4(0.0, 0.0, 0.0, 0.0);
+    TopMargin := 1;
+    LeftMargin := 1;
+    RightMargin := 1;
+    BottomMargin := 1;
   end;
+
+  FUITabs := TuiTT3DRootTabWidget.Create;
+  FUITabs.Parent := FUI;
+  FUITabs.TabSurface[wsNormal].Theme := FUITheme;
+  FUITabs.TabSurface[wsNormal].Shear := 16.0;
+  FUITabs.BackgroundSurface.Obj := FUITabsBG;
+
+  FUI.Background.Obj := FUIBackground;
 
   inherited InitData;
 end;
 
 procedure TTT3D.PerFrame(TimeInterval: Double);
-var
-  D: TVector2;
-  L: TVectorFloat;
 begin
-  if FMoving then
-  begin
-    D := FMoveTarget - FMove.Vec2;
-    L := VLength(D);
-    if L <= 0.05 then
-    begin
-      FMoveSpeed := Vector3(D * 10.0, FMoveAccel.Z);
-      FMoving := False;
-    end
-    else
-      FMoveSpeed := Vector3(D * 10.0, FMoveAccel.Z);
-  end;
-
-  if FRotating then
-  begin
-    D := FRotateTarget - FRot;
-    if Abs(D.Y) > 180.0 then
-      D.Y := -D.Y;
-    L := VLength(D);
-    if L <= 0.05 then
-    begin
-      FRotating := False;
-      FRotSpeed := D * 7.5;
-    end
-    else
-    begin
-      FRotSpeed := D * 7.5;
-    end;
-  end;
-
-  FMove += 0.5 * FMoveAccel * TimeInterval * TimeInterval + FMoveSpeed * TimeInterval;
-  FMoveSpeed += FMoveAccel * TimeInterval;
-  FMoveAccel /= 180 * TimeInterval;
-  FMoveSpeed /= 110 * TimeInterval;
-
-  FRot += 0.5 * FRotAccel * TimeInterval * TimeInterval + FRotSpeed * TimeInterval;
-  FRotSpeed += FRotAccel * TimeInterval;
-  FRotAccel /= 180 * TimeInterval;
-  FRotSpeed /= 110 * TimeInterval;
-
-  if FRot.X < -80.0 then
-  begin
-    FRotAccel.X := 0.0;
-    FRot.X := -80.0;
-  end;
-
-  if FRot.X > -10.0 then
-  begin
-    FRotAccel.X := 0.0;
-    FRot.X := -10.0;
-  end;
-
-  if FRot.Y > 360.0 then
-    FRot.Y -= 360.0;
-  if FRot.Y < 0.0 then
-    FRot.Y += 360.0;
-
-  if FMove.Z >= -4.3 then
-  begin
-    FMove.Z := -4.3;
-    FMoveAccel.Z := 0.0;
-  end;
-
-  SetupPerspective(0, Settings.Video.Width, 0, Settings.Video.Height, 1.0, 1000.0);
-  glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT);
-  glEnable(GL_DEPTH_TEST);
-
-  glTranslatef(0.0, 0.0, FMove.Z);
-  glRotatef(FRot.X, 1.0, 0.0, 0.0);
-  glRotatef(FRot.Y, 0.0, 0.0, 1.0);
-  glTranslatef(FMove.X, FMove.Y, FZ);
-
-  FDebugMaterial.BindForRendering(False);
-  FDebugMaterial.Render(GL_LINES);
-  FDebugMaterial.UnbindForRendering;
-
-  SetupOrthoDefault(0, FSettings.Video.Width, 0, FSettings.Video.Height);
-  glClear(GL_DEPTH_BUFFER_BIT);
+  glClear(GL_DEPTH_BUFFER_BIT or GL_COLOR_BUFFER_BIT);
   glDisable(GL_DEPTH_TEST);
 
   FUI.Update(TimeInterval);
@@ -434,14 +259,6 @@ procedure TTT3D.FreeData;
 begin
   FUI.Free;
   FUIMaterials.Free;
-  FGrid.Free;
-  FAxis.Free;
-  FDebugMaterial.Free;
-  FDebugBuffer.Free;
-  (*FGeometryManager.Free;
-  FNodeA.Free;
-  FNodeB.Free;
-  FNodeC.Free;*)
   inherited FreeData;
 end;
 
@@ -459,101 +276,24 @@ end;
 procedure TTT3D.HandleKeypress(Sym: TSDL_KeySym; Mode: TsdlKeyActionMode);
 begin
   case Sym.sym of
-    SDLK_KP0:
-    begin
-      if Mode = kmPress then
-      begin
-        FMoving := True;
-        FMoveTarget := Vector2(0.0, 0.0);
-        FRotating := True;
-        FRotateTarget := Vector2(-45.0, 45.0);
-        //FMoveAccel := Vector3((-2*(FMove.Vec2-Vector2(0.0, 0.0))*power(180, T))/(T*T), FMoveAccel.Z);
-        (*FMoveAccel := Vector3((-2*(FMove.Vec2-Vector2(0.0, 0.0)*power(1980, T)))/(T * (2*power(18, T)+T*power(11, T))), FMoveAccel.Z);;
-        FMoveSpeed := Vector3(0.0, 0.0, FMoveSpeed.Z);*)
-      end;
-    end;
     SDLK_ESCAPE:
     begin
       Terminate;
     end;
+  else
+    FUI.DeliverKeypress(Sym, Mode);
   end;
 end;
 
 procedure TTT3D.HandleMouseMotion(Motion: TsdlMouseMotionEventData);
-var
-  V: TVector2;
 begin
-  if Motion.state and SDL_BUTTON(3) <> 0 then
-  begin
-(*    FRotationX += Motion.yrel;
-    FRotationZ += Motion.xrel;
-    if FRotationX > -10.0 then
-      FRotationX := -10.0;
-    if FRotationX < -80.0 then
-      FRotationX := -80.0;*)
-
-    FRotAccel += Vector2(Motion.yrel, Motion.xrel) * 180.0;
-    FRotating := False;
-  end
-  else if (Motion.state and SDL_BUTTON(2) <> 0) or ((Motion.state and SDL_BUTTON(1) <> 0) and (Motion.state and SDL_BUTTON(3) <> 0)) then
-  begin
-    V := AngleToVec(-FRot.Y * Pi / 180.0);
-    (*FX -= V.X * Motion.xrel * FZoom * 0.0025;
-    FY -= V.Y * Motion.xrel * FZoom * 0.0025;*)
-    FMoveAccel -= Vector3(V * Motion.xrel * FMove.Z * 2.0, 0.0);
-
-    V := AngleToVec(-(FRot.Y + 90.0) * Pi / 180.0);
-    FMoveAccel -= Vector3(V * Motion.yrel * FMove.Z * 2.0, 0.0);
-    FMoving := False;
-    (*FX -= V.X * Motion.yrel * FZoom * 0.0025;
-    FY -= V.Y * Motion.yrel * FZoom * 0.0025;*)
-  end;
+  FUI.DeliverMouseMotion(Motion);
 end;
 
 procedure TTT3D.HandleMouseButton(Button: TsdlMouseButtonEventData;
   Mode: TsdlKeyActionMode);
 begin
-  //WriteLn(Button.button);
-  case Button.button of
-    4: if Mode = kmPress then
-    begin
-      FMoveAccel.Z -= 50.0 * FMove.Z;
-    end;
-
-    5: if Mode = kmPress then
-    begin
-      FMoveAccel.Z += 50.0 * FMove.Z;
-    end;
-  end;
-end;
-
-procedure TTT3D.SetupOrthoDefault(const Left, Right, Top, Bottom: Integer);
-begin
-  glViewport(Left, Top, Right - Left, Bottom - Top);
-
-  glMatrixMode( GL_PROJECTION );
-    glLoadIdentity;
-    (*case ProjectionType of
-      ptPerspective: gluPerspective( FFOV, (Right - Left) / (Bottom - Top), 0.1, 100.0 );
-      ptOrthogonal: *)
-    glOrtho(Left, Right, Bottom, Top, -10.0, 10.0);
-    //end;
-  glMatrixMode( GL_MODELVIEW );
-
-  glLoadIdentity;
-end;
-
-procedure TTT3D.SetupPerspective(const Left, Right, Top, Bottom: Integer;
-  const NearClip, FarClip: Double);
-begin
-  glViewport(Left, Top, Right - Left, Bottom - Top);
-
-  glMatrixMode( GL_PROJECTION );
-    glLoadIdentity;
-    gluPerspective( Settings.Video.FOV, (Right - Left) / (Bottom - Top), NearClip, FarClip );
-  glMatrixMode( GL_MODELVIEW );
-
-  glLoadIdentity;
+  FUI.DeliverMouseButton(Button, Mode);
 end;
 
 
