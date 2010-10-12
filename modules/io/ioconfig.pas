@@ -86,10 +86,10 @@ constructor TTT3DSettingsVideo.Create;
 begin
   inherited Create;
   FFOV := 60.0;
-  FFullscreen := True;
+  FFullscreen := False;
   FBPP := 32;
-  FHeight := 800;
-  FWidth := 1280;
+  FHeight := 768;
+  FWidth := 1024;
 end;
 
 initialization

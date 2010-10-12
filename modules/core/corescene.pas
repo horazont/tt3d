@@ -113,7 +113,7 @@ begin
     UseMap(nil);
   end;
 
-  FTerrain := TTerrain.Create(512, 512);
+  FTerrain := TTerrain.Create(128, 128);
 end;
 
 destructor TTT3DScene.Destroy;
@@ -288,9 +288,9 @@ begin
   FDebugMaterial.Render(GL_LINES);
   FDebugMaterial.UnbindForRendering;
 
-  (*FTerrain.BindForRendering;
+  FTerrain.BindForRendering;
   FTerrain.Render;
-  FTerrain.UnbindForRendering;*)
+  FTerrain.UnbindForRendering;
 
   SetupOrthoDefault(0, Config.Video.Width, 0, Config.Video.Height);
   glClear(GL_DEPTH_BUFFER_BIT);
