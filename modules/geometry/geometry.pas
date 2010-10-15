@@ -7,6 +7,9 @@ interface
 uses
   Classes, SysUtils, math;
 
+const
+  Pi2 = Pi * 2;
+
 type
   TVectorFloat = Double;
 
@@ -34,6 +37,8 @@ type
   PTriangle3 = ^TTriangle3;
 
   TMatrix3 = array [0..8] of TVectorFloat;
+  TMatrix4 = array [0..15] of TVectorFloat;
+  TMatrix4f = array [0..15] of Single;
 
   TVector4_Array = array [0..3] of TVectorFloat;
   TVector4_Length = type TVector4_Array;
@@ -84,6 +89,7 @@ operator * (A: TVectorFloat; B: TVector3): TVector3; inline;
 operator * (A: TVectorFloat; B: TVector4): TVector4; inline;
 
 operator * (A: TMatrix3; B: TVector3): TVector3; inline;
+operator * (A, B: TMatrix4): TMatrix4; inline;
 
 operator ** (A, B: TVector3): TVector3; inline;
 operator ** (A: TCubicBezier1; B: TVectorFloat): TVectorFloat; inline;
@@ -102,6 +108,7 @@ operator := (A: TVector3): TVector3f; inline;
 operator := (A: TVector3f): TVector3; inline;
 operator := (A: TVector4): TVector4f; inline;
 operator := (A: TVector4f): TVector4; inline;
+operator := (A: TMatrix4): TMatrix4f; inline;
 
 operator = (A, B: TVector2): Boolean; inline;
 operator = (A, B: TVector3): Boolean; inline;
@@ -139,6 +146,10 @@ function Vector4f(Vec4: TVector4): TVector4f; inline;
 function Vector4f(X, Y, Z: Single; W: Single = 1.0): TVector4f; inline;
 
 function RotationMatrix(Axis: TVector3; Angle: TVectorFloat): TMatrix3;
+function RotationMatrixX(Angle: TVectorFloat): TMatrix4;
+function RotationMatrixY(Angle: TVectorFloat): TMatrix4;
+function RotationMatrixZ(Angle: TVectorFloat): TMatrix4;
+function TranslationMatrix(const V: TVector3): TMatrix4; inline;
 
 function Intersection(const AOrigin, ADirection, BOrigin, BDirection: TVector2): TVector2;
 
@@ -150,6 +161,8 @@ function FormatVector(Vec3: TVector3): String; inline;
 function FormatVector(Vec3: TVector3f): String; inline;
 function FormatVector(Vec4: TVector4): String; inline;
 function FormatVector(Vec4: TVector4f): String; inline;
+function FormatMatrix(Mat4: TMatrix4): String; inline;
+function FormatMatrix(Mat4: TMatrix4f): String; inline;
 
 const
   V_EX : TVector3 = (X: 1.0; Y: 0.0; Z: 0.0);
@@ -160,6 +173,8 @@ const
 
 const
   IdentityMatrix3 : TMatrix3 = (1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0);
+  IdentityMatrix4f : TMatrix4f = (1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0);
+  IdentityMatrix4 : TMatrix4 = (1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0);
 
 implementation
 
@@ -290,6 +305,29 @@ begin
   Result.Z := A[2] * B.X + A[5] * B.Z + A[8] * B.Z;
 end;
 
+operator * (A, B: TMatrix4): TMatrix4;
+begin
+  Result[0] := A[0] * B[0] + A[4] * B[1] + A[8] * B[2] + A[12] * B[3];
+  Result[1] := A[1] * B[0] + A[5] * B[1] + A[9] * B[2] + A[13] * B[3];
+  Result[2] := A[2] * B[0] + A[6] * B[1] + A[10] * B[2] + A[14] * B[3];
+  Result[3] := A[3] * B[0] + A[7] * B[1] + A[11] * B[2] + A[15] * B[3];
+
+  Result[4] := A[0] * B[4] + A[4] * B[5] + A[8] * B[6] + A[12] * B[7];
+  Result[5] := A[1] * B[4] + A[5] * B[5] + A[9] * B[6] + A[13] * B[7];
+  Result[6] := A[2] * B[4] + A[6] * B[5] + A[10] * B[6] + A[14] * B[7];
+  Result[7] := A[3] * B[4] + A[7] * B[5] + A[11] * B[6] + A[15] * B[7];
+
+  Result[8] := A[0] * B[8] + A[4] * B[9] + A[8] * B[10] + A[12] * B[11];
+  Result[9] := A[1] * B[8] + A[5] * B[9] + A[9] * B[10] + A[13] * B[11];
+  Result[10] := A[2] * B[8] + A[6] * B[9] + A[10] * B[10] + A[14] * B[11];
+  Result[11] := A[3] * B[8] + A[7] * B[9] + A[11] * B[10] + A[15] * B[11];
+
+  Result[12] := A[0] * B[12] + A[4] * B[13] + A[8] * B[14] + A[12] * B[15];
+  Result[13] := A[1] * B[12] + A[5] * B[13] + A[9] * B[14] + A[13] * B[15];
+  Result[14] := A[2] * B[12] + A[6] * B[13] + A[10] * B[14] + A[14] * B[15];
+  Result[15] := A[3] * B[12] + A[7] * B[13] + A[11] * B[14] + A[15] * B[15];
+end;
+
 operator ** (A, B: TVector3): TVector3;
 begin
   Result.X := A.Y * B.Z - A.Z * B.Y;
@@ -395,6 +433,26 @@ begin
   Result.Y := A[1];
   Result.Z := A[2];
   Result.W := A[3];
+end;
+
+operator:=(A: TMatrix4): TMatrix4f;
+begin
+  Result[0] := A[0];
+  Result[1] := A[1];
+  Result[2] := A[2];
+  Result[3] := A[3];
+  Result[4] := A[4];
+  Result[5] := A[5];
+  Result[6] := A[6];
+  Result[7] := A[7];
+  Result[8] := A[8];
+  Result[9] := A[9];
+  Result[10] := A[10];
+  Result[11] := A[11];
+  Result[12] := A[12];
+  Result[13] := A[13];
+  Result[14] := A[14];
+  Result[15] := A[15];
 end;
 
 operator = (A, B: TVector2): Boolean; inline;
@@ -683,6 +741,60 @@ begin
     Result[8] := (OneMinusCosine * Sqr(Axis.Z)) + Cosine;
   end;
 end;
+  
+function RotationMatrixX(Angle: TVectorFloat): TMatrix4;
+var
+  sr, cr: float;
+  S, C: TVectorFloat;
+begin
+  sincos(Angle, sr, cr);
+  WriteLn(Angle);
+  S := Sin(Angle);
+  C := Cos(Angle);
+  Result := IdentityMatrix4;
+  Result[5] := C;
+  Result[6] := S;
+  Result[9] := -S;
+  Result[10] := C;
+end;
+
+function RotationMatrixY(Angle: TVectorFloat): TMatrix4;
+var
+  sr, cr: float;
+  S, C: TVectorFloat;
+begin
+  sincos(Angle, sr, cr);
+  S := sr;
+  C := cr;
+  Result := IdentityMatrix4;
+  Result[0] := C;
+  Result[2] := -S;
+  Result[8] := S;
+  Result[10] := C;
+end;
+
+function RotationMatrixZ(Angle: TVectorFloat): TMatrix4;
+var
+  sr, cr: float;
+  S, C: TVectorFloat;
+begin
+  sincos(Angle, sr, cr);
+  S := sr;
+  C := cr;
+  Result := IdentityMatrix4;
+  Result[0] := C;
+  Result[1] := S;
+  Result[4] := -S;
+  Result[5] := C;
+end;
+
+function TranslationMatrix(const V: TVector3): TMatrix4;
+begin
+  Result := IdentityMatrix4;
+  Result[12] := V.X;
+  Result[13] := V.Y;
+  Result[14] := V.Z;
+end;
 
 function Intersection(const AOrigin, ADirection, BOrigin, BDirection: TVector2
   ): TVector2;
@@ -747,6 +859,16 @@ end;
 function FormatVector(Vec4: TVector4f): String; inline;
 begin
   Result := Format('vec4(%.3f, %.3f, %.3f, %.3f)', [Vec4[0], Vec4[1], Vec4[2], Vec4[3]]);
+end;
+
+function FormatMatrix(Mat4: TMatrix4): String;
+begin
+  Result := Format('mat4(%6.3f, %6.3f, %6.3f, %6.3f)'+LineEnding+'    (%6.3f, %6.3f, %6.3f, %6.3f)'+LineEnding+'    (%6.3f, %6.3f, %6.3f, %6.3f)'+LineEnding+'    (%6.3f, %6.3f, %6.3f, %6.3f)', [Mat4[0], Mat4[4], Mat4[8], Mat4[12], Mat4[1], Mat4[5], Mat4[9], Mat4[13], Mat4[2], Mat4[6], Mat4[10], Mat4[14], Mat4[3], Mat4[7], Mat4[11], Mat4[15]]);
+end;
+
+function FormatMatrix(Mat4: TMatrix4f): String;
+begin
+  Result := Format('mat4(%6.3f, %6.3f, %6.3f, %6.3f)'+LineEnding+'    (%6.3f, %6.3f, %6.3f, %6.3f)'+LineEnding+'    (%6.3f, %6.3f, %6.3f, %6.3f)'+LineEnding+'    (%6.3f, %6.3f, %6.3f, %6.3f)', [Mat4[0], Mat4[4], Mat4[8], Mat4[12], Mat4[1], Mat4[5], Mat4[9], Mat4[13], Mat4[2], Mat4[6], Mat4[10], Mat4[14], Mat4[3], Mat4[7], Mat4[11], Mat4[15]]);
 end;
 
 end.

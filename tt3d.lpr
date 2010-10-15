@@ -11,7 +11,7 @@ uses
   {$ifdef UseHeapTrc}heaptrc,{$endif}
   SysUtils, Classes, Geometry, math, dateutils, ioConfig, coreUIBootstrap,
 TransportGeometryGL, FileUtil, uiGL, GLMaterials, XMLGeometry, coreScene,
-GLHelpers, uiTT3D, GeometryColors, TerrainGeometry, Voronoi;
+GLHelpers, uiTT3D, GeometryColors, TerrainGeometry, Voronoi, GLCamera;
 
 {$R *.res}
 
