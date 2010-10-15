@@ -114,7 +114,6 @@ end;
 
 destructor TTT3DScene.Destroy;
 begin
-  FTerrain.Free;
   FGrid.Free;
   FAxis.Free;
   FDebugMaterial.Free;
