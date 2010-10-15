@@ -140,6 +140,8 @@ function Vector4f(X, Y, Z: Single; W: Single = 1.0): TVector4f; inline;
 
 function RotationMatrix(Axis: TVector3; Angle: TVectorFloat): TMatrix3;
 
+function Intersection(const AOrigin, ADirection, BOrigin, BDirection: TVector2): TVector2;
+
 function VecToAngle(Vec2: TVector2): TVectorFloat; inline;
 function AngleToVec(a: TVectorFloat): TVector2; inline;
 
@@ -679,6 +681,25 @@ begin
     Result[6] := (OneMinusCosine * Axis.Z * Axis.X) - (Axis.Y * Sine);
     Result[7] := (OneMinusCosine * Axis.Y * Axis.Z) + (Axis.X * Sine);
     Result[8] := (OneMinusCosine * Sqr(Axis.Z)) + Cosine;
+  end;
+end;
+
+function Intersection(const AOrigin, ADirection, BOrigin, BDirection: TVector2
+  ): TVector2;
+var
+  r: TVectorFloat;
+begin
+  if AOrigin = BOrigin then
+    Exit(AOrigin);
+  if (ADirection = BDiretion) or (ADirection = -BDirection) then
+    Exit(Vector2(NaN, NaN));
+  if ADirection.x = 0.0 then
+  begin
+    r := BDirection.y *
+  end
+  else
+  begin
+
   end;
 end;
 
