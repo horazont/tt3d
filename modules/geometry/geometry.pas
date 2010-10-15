@@ -7,6 +7,9 @@ interface
 uses
   Classes, SysUtils, math;
 
+const
+  Pi2 = Pi * 2;
+
 type
   TVectorFloat = Double;
 
@@ -156,6 +159,8 @@ function FormatVector(Vec3: TVector3): String; inline;
 function FormatVector(Vec3: TVector3f): String; inline;
 function FormatVector(Vec4: TVector4): String; inline;
 function FormatVector(Vec4: TVector4f): String; inline;
+function FormatMatrix(Mat4: TMatrix4): String; inline;
+function FormatMatrix(Mat4: TMatrix4f): String; inline;
 
 const
   V_EX : TVector3 = (X: 1.0; Y: 0.0; Z: 0.0);
@@ -741,8 +746,9 @@ var
   S, C: TVectorFloat;
 begin
   sincos(Angle, sr, cr);
-  S := sr;
-  C := cr;
+  WriteLn(Angle);
+  S := Sin(Angle);
+  C := Cos(Angle);
   Result := IdentityMatrix4;
   Result[5] := C;
   Result[6] := S;
@@ -832,6 +838,16 @@ end;
 function FormatVector(Vec4: TVector4f): String; inline;
 begin
   Result := Format('vec4(%.3f, %.3f, %.3f, %.3f)', [Vec4[0], Vec4[1], Vec4[2], Vec4[3]]);
+end;
+
+function FormatMatrix(Mat4: TMatrix4): String;
+begin
+  Result := Format('mat4(%6.3f, %6.3f, %6.3f, %6.3f)'+LineEnding+'    (%6.3f, %6.3f, %6.3f, %6.3f)'+LineEnding+'    (%6.3f, %6.3f, %6.3f, %6.3f)'+LineEnding+'    (%6.3f, %6.3f, %6.3f, %6.3f)', [Mat4[0], Mat4[4], Mat4[8], Mat4[12], Mat4[1], Mat4[5], Mat4[9], Mat4[13], Mat4[2], Mat4[6], Mat4[10], Mat4[14], Mat4[3], Mat4[7], Mat4[11], Mat4[15]]);
+end;
+
+function FormatMatrix(Mat4: TMatrix4f): String;
+begin
+  Result := Format('mat4(%6.3f, %6.3f, %6.3f, %6.3f)'+LineEnding+'    (%6.3f, %6.3f, %6.3f, %6.3f)'+LineEnding+'    (%6.3f, %6.3f, %6.3f, %6.3f)'+LineEnding+'    (%6.3f, %6.3f, %6.3f, %6.3f)', [Mat4[0], Mat4[4], Mat4[8], Mat4[12], Mat4[1], Mat4[5], Mat4[9], Mat4[13], Mat4[2], Mat4[6], Mat4[10], Mat4[14], Mat4[3], Mat4[7], Mat4[11], Mat4[15]]);
 end;
 
 end.

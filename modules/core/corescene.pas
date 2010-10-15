@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, uiGL, GLGeometry, Geometry, ioSDL, dglOpenGL, GLHelpers,
-  ioConfig, sdl, TerrainGeometry;
+  ioConfig, sdl, TerrainGeometry, GLCamera;
 
 type
 
@@ -22,15 +22,17 @@ type
     FAxis: TGLGeometryObject;
     FGrid: TGLGeometryObject;
 
-    FMove, FMoveSpeed, FMoveAccel: TVector3;
+    (*FMove, FMoveSpeed, FMoveAccel: TVector3;
     FMoveTarget: TVector2;
     FMoving: Boolean;
 
     FRot, FRotSpeed, FRotAccel: TVector2;
     FRotateTarget: TVector2;
     FRotating: Boolean;
-    FZ: TVectorFloat;
+    FZ: TVectorFloat;*)
+    FCamera: TGLCameraFreeSmooth;
   protected
+    procedure DoAbsMetricsChanged; override;
     procedure DoKeypress(Sym: TSDL_KeySym; Mode: TsdlKeyActionMode;
        var Handled: Boolean); override;
     procedure DoMouseButton(Button: TsdlMouseButtonEventData;
@@ -49,7 +51,7 @@ var
   I: Integer;
 begin
   inherited Create;
-  FZ := 0.0;
+  (*FZ := 0.0;
   FMoving := False;
   FRotating := False;
 
@@ -59,7 +61,9 @@ begin
 
   FRot := Vector2(0.0, 0.0);
   FRotSpeed := Vector2(0.0, 0.0);
-  FRotAccel := Vector2(0.0, 0.0);
+  FRotAccel := Vector2(0.0, 0.0);     *)
+
+  FCamera := TGLCameraFreeSmooth.Create;
 
   FDebugBuffer := TGLGeometryBuffer.Create(SizeOf(Single) * 8, GL_DYNAMIC_DRAW);
   FDebugMaterial := TGLMaterial.Create(FDebugBuffer, TGLGeometryFormatP4C4);
@@ -110,6 +114,14 @@ begin
 
     UseMap(nil);
   end;
+
+  FCamera.FOV := Config.Video.FOV;
+  FCamera.NearZ := 1.0;
+  FCamera.FarZ := 1000.0;
+  FCamera.Viewport.Left := AbsLeft;
+  FCamera.Viewport.Top := AbsTop;
+  FCamera.Viewport.Right := AbsLeft + AbsWidth;
+  FCamera.Viewport.Bottom := AbsTop + AbsHeight;
 end;
 
 destructor TTT3DScene.Destroy;
@@ -121,6 +133,12 @@ begin
   inherited Destroy;
 end;
 
+procedure TTT3DScene.DoAbsMetricsChanged;
+begin
+  FCamera.Viewport.SetAll(AbsTop, AbsLeft, AbsTop + AbsHeight, AbsLeft + AbsWidth);
+  inherited DoAbsMetricsChanged;
+end;
+
 procedure TTT3DScene.DoKeypress(Sym: TSDL_KeySym; Mode: TsdlKeyActionMode;
   var Handled: Boolean);
 begin
@@ -129,10 +147,12 @@ begin
     begin
       if Mode = kmPress then
       begin
-        FMoving := True;
+        (*FMoving := True;
         FMoveTarget := Vector2(0.0, 0.0);
         FRotating := True;
-        FRotateTarget := Vector2(-45.0, 45.0);
+        FRotateTarget := Vector2(-45.0, 45.0);*)
+        FCamera.IssueMoveTo(Vector2(0.0, 0.0));
+        FCamera.IssueRotateTo(Vector2(0.0, 0.0));
       end;
       Handled := True;
     end;
@@ -146,33 +166,33 @@ begin
     4: if Mode = kmPress then
     begin
       if SDL_GetKeyState(nil)[SDLK_LCTRL] or SDL_GetKeyState(nil)[SDLK_RCTRL] <> 0 then
-        FRotAccel.X -= 1000.0
+        FCamera.AccelerateRotation(Vector2(-4*Pi, 0.0))
       else
-        FMoveAccel.Z -= 50.0 * FMove.Z;
+        FCamera.AccelerateZoom(-50.0 * FCamera.Zoom);
     end;
 
     5: if Mode = kmPress then
     begin
       if SDL_GetKeyState(nil)[SDLK_LCTRL] or SDL_GetKeyState(nil)[SDLK_RCTRL] <> 0 then
-        FRotAccel.X += 1000.0
+        FCamera.AccelerateRotation(Vector2(4*Pi, 0.0))
       else
-        FMoveAccel.Z += 50.0 * FMove.Z;
+        FCamera.AccelerateZoom(50.0 * FCamera.Zoom);
     end;
 
     6: if Mode = kmPress then
     begin
       if SDL_GetKeyState(nil)[SDLK_LSHIFT] or SDL_GetKeyState(nil)[SDLK_RSHIFT] <> 0 then
-        FMoveAccel -= Vector3(AngleToVec(-FRot.Y * Pi / 180.0) * 10.0 * FMove.Z * 2.0, 0.0)
+        FCamera.Accelerate(-FCamera.FlatRight * 10.0 * FCamera.Zoom * 2.0)
       else
-        FRotAccel.Y -= 1000.0;
+        FCamera.AccelerateRotation(Vector2(0.0, -4*Pi))
     end;
 
     7: if Mode = kmPress then
     begin
       if SDL_GetKeyState(nil)[SDLK_LSHIFT] or SDL_GetKeyState(nil)[SDLK_RSHIFT] <> 0 then
-        FMoveAccel += Vector3(AngleToVec(-FRot.Y * Pi / 180.0) * 10.0 * FMove.Z * 2.0, 0.0)
+        FCamera.Accelerate(FCamera.FlatRight * 10.0 * FCamera.Zoom * 2.0)
       else
-        FRotAccel.Y += 1000.0;
+        FCamera.AccelerateRotation(Vector2(0.0, 4*pi))
     end;
   end;
 end;
@@ -180,20 +200,18 @@ end;
 procedure TTT3DScene.DoMouseMotion(Motion: TsdlMouseMotionEventData);
 var
   V: TVector2;
+  Factor: TVectorFloat;
 begin
   if Motion.state and SDL_BUTTON(3) <> 0 then
   begin
-    FRotAccel += Vector2(Motion.yrel, Motion.xrel) * 180.0;
-    FRotating := False;
+    FCamera.AccelerateRotation(Vector2(Motion.yrel, Motion.xrel) * Pi);
+    FCamera.StopRotation(False);
   end
   else if (Motion.state and SDL_BUTTON(2) <> 0) or ((Motion.state and SDL_BUTTON(1) <> 0) and (Motion.state and SDL_BUTTON(3) <> 0)) then
   begin
-    V := AngleToVec(-FRot.Y * Pi / 180.0);
-    FMoveAccel -= Vector3(V * Motion.xrel * FMove.Z * 2.0, 0.0);
-
-    V := AngleToVec(-(FRot.Y + 90.0) * Pi / 180.0);
-    FMoveAccel -= Vector3(V * Motion.yrel * FMove.Z * 2.0, 0.0);
-    FMoving := False;
+    Factor := -FCamera.Zoom * 2.0;
+    FCamera.Accelerate((FCamera.FlatRight * Motion.xrel + FCamera.FlatFront * Motion.yrel) * Factor);
+    FCamera.StopMovement(False);
   end;
 end;
 
@@ -202,7 +220,7 @@ var
   D: TVector2;
   L: TVectorFloat;
 begin
-  if FMoving then
+  (*if FMoving then
   begin
     D := FMoveTarget - FMove.Vec2;
     L := VLength(D);
@@ -263,23 +281,25 @@ begin
   begin
     FMove.Z := -4.3;
     FMoveAccel.Z := 0.0;
-  end;
+  end;  *)
+  FCamera.Update(ATimeInterval);
 
   DoUpdateBackgroundGeometry;
 end;
 
 procedure TTT3DScene.DoRenderBackground;
 begin
-  SetupPerspective(AbsLeft, AbsWidth, AbsTop, AbsHeight, 1.0, 1000.0, Config.Video.FOV);
+  //SetupPerspective(AbsLeft, AbsWidth, AbsTop, AbsHeight, 1.0, 1000.0, Config.Video.FOV);
   glDisable(GL_SCISSOR_TEST);
   glEnable(GL_DEPTH_TEST);
   glEnable(GL_CULL_FACE);
   glCullFace(GL_CCW);
 
-  glTranslatef(0.0, 0.0, FMove.Z);
+  (*glTranslatef(0.0, 0.0, FMove.Z);
   glRotatef(FRot.X, 1.0, 0.0, 0.0);
   glRotatef(FRot.Y, 0.0, 0.0, 1.0);
-  glTranslatef(FMove.X, FMove.Y, FZ);
+  glTranslatef(FMove.X, FMove.Y, FZ);      *)
+  FCamera.Load;
 
   FDebugMaterial.BindForRendering(False);
   FDebugMaterial.Render(GL_LINES);
