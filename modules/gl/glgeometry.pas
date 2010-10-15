@@ -104,6 +104,8 @@ type
   private
     FIndicies: TVertexIndicies;
   public
+    property Indicies: TVertexIndicies read FIndicies;
+  public
     function MapVertex(Vertex: Cardinal): Cardinal; override;
   end;
 
@@ -248,6 +250,7 @@ type
     FStaticIndexBuffer: TGLIndexBuffer;
     FStreamIndexBuffer: TGLStreamIndexBuffer;
   public
+    property Format: TGLGeometryFormat read FFormat;
     property GeometryBuffer: TGLGeometryBuffer read FGeometryBuffer;
     property StaticIndexBuffer: TGLIndexBuffer read FStaticIndexBuffer;
     property StreamIndexBuffer: TGLStreamIndexBuffer read FStreamIndexBuffer;
@@ -269,6 +272,7 @@ type
       AStreamIndexBuffer: TGLStreamIndexBuffer = nil);
     destructor Destroy; override;
   private
+    FCount: Integer;
     FVBIndicies: TVertexIndicies;
     FIBIndicies: TVertexIndicies;
     FStaticIndexBuffer: TGLIndexBuffer;
@@ -280,15 +284,32 @@ type
     FMap: TGLGeometryBufferMap;
   protected
     function CreateMap: TGLGeometryBufferMap; virtual;
-    function GetIndexBufferIndicies(const AVBIndicies: TVertexIndicies): TVertexIndicies; virtual;
+    function GetIndexBufferIndicies(const AVBIndicies: TVertexIndicies; const ACount: Integer): TVertexIndicies; virtual;
   public
     procedure AddToStreamBuffer(const AStreamBuffer: TGLStreamIndexBuffer);
     procedure DrawDirect(mode: TGLenum);
   public
+    property Count: Integer read FCount;
     property GeometryBuffer: TGLGeometryBuffer read FGeometryBuffer;
     property Format: TGLGeometryFormat read FFormat;
     property Map: TGLGeometryBufferMap read FMap;
     property StaticIndexBuffer: TGLIndexBuffer read FStaticIndexBuffer write SetStaticIndexBuffer;
+  end;
+
+  { TGLGeometryObjectDynamic }
+
+  TGLGeometryObjectDynamic = class (TGLGeometryObject)
+  public
+    constructor Create(const ABuffer: TGLGeometryBuffer;
+       const AFormat: TGLGeometryFormat; AVertexCount: Integer;
+       AStaticIndexBuffer: TGLIndexBuffer = nil;
+       AStreamIndexBuffer: TGLStreamIndexBuffer = nil);
+    constructor Create(const AMaterial: TGLMaterial; AVertexCount: Integer);
+  private
+    FCapacity: Integer;
+  public
+    procedure ExpandTo(const ANewCount: Integer);
+    procedure ShrinkTo(const ANewCount: Integer);
   end;
 
   { TGLGeometryQuadsForTris }
@@ -300,11 +321,9 @@ type
        AStaticIndexBuffer: TGLIndexBuffer = nil;
        AStreamIndexBuffer: TGLStreamIndexBuffer = nil);
   protected
-    function GetIndexBufferIndicies(const AVBIndicies: TVertexIndicies
-       ): TVertexIndicies; override;
+    function GetIndexBufferIndicies(const AVBIndicies: TVertexIndicies;
+      const ACount: Integer): TVertexIndicies; override;
   end;
-
-  { TGLGeometryTerrainSection }
 
   { TGLGeometryTerrainSectionForTris }
 
@@ -317,8 +336,8 @@ type
   private
     FWidth, FHeight: Integer;
   protected
-    function GetIndexBufferIndicies(const AVBIndicies: TVertexIndicies
-       ): TVertexIndicies; override;
+    function GetIndexBufferIndicies(const AVBIndicies: TVertexIndicies;
+      const ACount: Integer): TVertexIndicies; override;
   end;
 
 procedure RaiseLastGLError;
@@ -874,7 +893,7 @@ var
 begin
   AddCount := Length(AIndicies);
   if AddCount = 0 then
-    Exit;
+    Exit(nil);
   while FCount + AddCount >= FCapacity do
     Expand;
   Result := GetMem(SizeOf(TIndexEntry));
@@ -987,10 +1006,11 @@ constructor TGLGeometryObject.Create(const ABuffer: TGLGeometryBuffer;
   AStaticIndexBuffer: TGLIndexBuffer; AStreamIndexBuffer: TGLStreamIndexBuffer
     );
 begin
+  FCount := AVertexCount;
   FFormat := AFormat;
   FGeometryBuffer := ABuffer;
   FVBIndicies := FGeometryBuffer.AllocateVertices(AVertexCount);
-  FIBIndicies := GetIndexBufferIndicies(FVBIndicies);
+  FIBIndicies := GetIndexBufferIndicies(FVBIndicies, AVertexCount);
   if AStaticIndexBuffer <> nil then
     SetStaticIndexBuffer(AStaticIndexBuffer);
   FMap := CreateMap;
@@ -1023,9 +1043,17 @@ begin
 end;
 
 function TGLGeometryObject.GetIndexBufferIndicies(
-  const AVBIndicies: TVertexIndicies): TVertexIndicies;
+  const AVBIndicies: TVertexIndicies; const ACount: Integer): TVertexIndicies;
 begin
-  Result := AVBIndicies;
+  if ACount = 0 then
+    Exit(nil);
+  if ACount <> Length(AVBIndicies) then
+  begin
+    SetLength(Result, ACount);
+    Move(AVBIndicies[0], Result[0], ACount * SizeOf(TVertexIndex));
+  end
+  else
+    Result := AVBIndicies;
 end;
 
 procedure TGLGeometryObject.AddToStreamBuffer(
@@ -1039,6 +1067,8 @@ begin
   FGeometryBuffer.BindForRendering;
   FFormat.BindGLPointer;
   glDrawElements(mode, Length(FIBIndicies), GL_UNSIGNED_INT, @FIBIndicies[0]);
+  FFormat.UnbindGLPointer;
+  FGeometryBuffer.UnbindForRendering;
 end;
 
 { TGLGeometryQuadsForTris }
@@ -1051,11 +1081,11 @@ begin
 end;
 
 function TGLGeometryQuadsForTris.GetIndexBufferIndicies(
-  const AVBIndicies: TVertexIndicies): TVertexIndicies;
+  const AVBIndicies: TVertexIndicies; const ACount: Integer): TVertexIndicies;
 var
   I, L, IV, II: Integer;
 begin
-  L := Length(AVBIndicies);
+  L := ACount;
   Assert(L mod 4 = 0);
   SetLength(Result, L + L div 2);
 
@@ -1085,7 +1115,7 @@ begin
 end;
 
 function TGLGeometryTerrainSectionForTris.GetIndexBufferIndicies(
-  const AVBIndicies: TVertexIndicies): TVertexIndicies;
+  const AVBIndicies: TVertexIndicies; const ACount: Integer): TVertexIndicies;
 var
   X, Y: Integer;
   I, IJ: Integer;
@@ -1096,7 +1126,6 @@ var
   end;
 
 begin
-  WriteLn(FWidth, ' ', FHeight);
   SetLength(Result, (FWidth - 1) * (FHeight - 1) * 6);
 
   IJ := 0;
@@ -1124,6 +1153,62 @@ begin
       end;
       Inc(IJ, 6);
     end;
+  end;
+end;
+
+{ TGLGeometryObjectDynamic }
+
+constructor TGLGeometryObjectDynamic.Create(const ABuffer: TGLGeometryBuffer;
+  const AFormat: TGLGeometryFormat; AVertexCount: Integer;
+  AStaticIndexBuffer: TGLIndexBuffer; AStreamIndexBuffer: TGLStreamIndexBuffer
+    );
+begin
+  inherited;
+  FCapacity := FCount;
+end;
+
+constructor TGLGeometryObjectDynamic.Create(const AMaterial: TGLMaterial;
+  AVertexCount: Integer);
+begin
+  Create(AMaterial.GeometryBuffer, AMaterial.Format, AVertexCount, AMaterial.StaticIndexBuffer, AMaterial.StreamIndexBuffer);
+end;
+
+procedure TGLGeometryObjectDynamic.ExpandTo(const ANewCount: Integer);
+var
+  AdditionalAllocation: TVertexIndicies;
+begin
+  if FCount = ANewCount then
+    Exit;
+  if FCapacity < ANewCount then
+  begin
+    AdditionalAllocation := FGeometryBuffer.AllocateVertices(ANewCount - FCapacity);
+    SetLength(FVBIndicies, ANewCount);
+    Move(AdditionalAllocation[0], FVBIndicies[FCapacity], SizeOf(TVertexIndex) * (ANewCount - FCapacity));
+    FCapacity := ANewCount;
+    FMap.Free;
+    FMap := CreateMap;
+  end;
+  FCount := ANewCount;
+  FIBIndicies := GetIndexBufferIndicies(FVBIndicies, FCount);
+  if FStaticIndexBuffer <> nil then
+  begin
+    if FStaticIndexHandle <> nil then
+      FStaticIndexBuffer.RemoveIndicies(FStaticIndexHandle);
+    FStaticIndexHandle := FStaticIndexBuffer.AddHandled(FIBIndicies);
+  end;
+end;
+
+procedure TGLGeometryObjectDynamic.ShrinkTo(const ANewCount: Integer);
+begin
+  if FCount = ANewCount then
+    Exit;
+  FCount := ANewCount;
+  FIBIndicies := GetIndexBufferIndicies(FVBIndicies, FCount);
+  if FStaticIndexBuffer <> nil then
+  begin
+    if FStaticIndexHandle <> nil then
+      FStaticIndexBuffer.RemoveIndicies(FStaticIndexHandle);
+    FStaticIndexHandle := FStaticIndexBuffer.AddHandled(FIBIndicies);
   end;
 end;
 

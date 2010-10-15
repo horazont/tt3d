@@ -16,11 +16,15 @@ type
   TDotCloud2 = array of TVector2;
   TDotCloud3 = array of TVector3;
 
+  TVoronoiLine2 = record
+    Center: TVector2;
+    Direction: TVector2;
+    T1, T2: TVectorFloat;
+  end;
+
 procedure Voronoi2(const DotCloud: TDotCloud2; const Polygons: TPolygons2);
 
 implementation
-
-procedure Voronoi2_Helper(const DotA, DotB: TVector2)
 
 procedure Voronoi2(const DotCloud: TDotCloud2; const Polygons: TPolygons2);
 begin

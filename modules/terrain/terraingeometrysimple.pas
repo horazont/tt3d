@@ -1,4 +1,4 @@
-unit TerrainGeometry;
+unit TerrainGeometrySimple;
 
 {$mode objfpc}{$H+}
 

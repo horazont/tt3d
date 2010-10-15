@@ -8,8 +8,8 @@ uses
   Classes, SysUtils, dglOpenGL, Geometry, math;
 
 const
-  ACCEL_EPSILON = 0.01;
-  VEL_EPSILON = 0.01;
+  ACCEL_EPSILON = 0.001;
+  VEL_EPSILON = 0.001;
 
 type
 
@@ -51,12 +51,14 @@ type
     FModelViewInvalidated: Boolean;
     FProjectionInvalidated: Boolean;
     FViewport: TGLViewport;
+    FOnMoved: TNotifyEvent;
   protected
     FModelView: TMatrix4f;
     FProjection: TMatrix4f;
   protected
     procedure DeinvalidateModelView;
     procedure DeinvalidateProjection;
+    procedure DoMoved;
     procedure InvalidateModelView;
     procedure InvalidateProjection;
     procedure RecalculateModelView; virtual; abstract;
@@ -66,7 +68,9 @@ type
     procedure Load;
     procedure Mult;
     procedure Update(const TimeInterval: Double); virtual;
+    procedure Validate;
   public
+    property OnMoved: TNotifyEvent read FOnMoved write FOnMoved;
     property Viewport: TGLViewport read FViewport;
   end;
 
@@ -94,22 +98,30 @@ type
   public
     constructor Create;
   private
+    FModelViewHiRes: TMatrix4;
+    FInvModelViewHiRes: TMatrix4;
     FPos: TVector3;
     FRotation: TVector2;
     FZoom: TVectorFloat;
     FRight, FUp, FFront: TVector3;
     FFlatRight, FFlatFront: TVector2;
     FFlatRightFrontInvalidated: Boolean;
+    FTransformedPos: TVector3;
+    FTransformedPosInvalidated: Boolean;
     function GetFlatFront: TVector2;
     function GetFlatRight: TVector2;
+    function GetTransformedPos: TVector3;
     procedure SetPos(const AValue: TVector3);
     procedure SetRotation(const AValue: TVector2);
     procedure SetZoom(const AValue: TVectorFloat);
   protected
     procedure DeinvalidateFlatRightFront;
+    procedure DeinvalidateTransformedPos;
     procedure InvalidateFlatRightFront;
+    procedure InvalidateTransformedPos;
     procedure RecalculateFlatRightFront; virtual;
     procedure RecalculateModelView; override;
+    procedure RecalculateTransformedPos;
   public
     property Pos: TVector3 read FPos write SetPos;
     property Rotation: TVector2 read FRotation write SetRotation;
@@ -119,6 +131,7 @@ type
     property Front: TVector3 read FFront;
     property FlatRight: TVector2 read GetFlatRight;
     property FlatFront: TVector2 read GetFlatFront;
+    property TransformedPos: TVector3 read GetTransformedPos;
   end;
 
   { TGLCameraFreeSmooth }
@@ -251,6 +264,12 @@ begin
   FProjectionInvalidated := False;
 end;
 
+procedure TGLCamera.DoMoved;
+begin
+  if Assigned(FOnMoved) then
+    FOnMoved(Self);
+end;
+
 procedure TGLCamera.InvalidateModelView;
 begin
   FModelViewInvalidated := True;
@@ -293,6 +312,14 @@ end;
 procedure TGLCamera.Update(const TimeInterval: Double);
 begin
 
+end;
+
+procedure TGLCamera.Validate;
+begin
+  if FProjectionInvalidated then
+    RecalculateProjection;
+  if FModelViewInvalidated then
+    RecalculateModelView;
 end;
 
 { TGLCameraPerspective }
@@ -352,6 +379,7 @@ begin
   FRotation := Vector2(-Pi/4, 0.0);
   FZoom := -5.0;
   FFlatRightFrontInvalidated := True;
+  FTransformedPosInvalidated:= True;
 end;
 
 procedure TGLCameraFree.SetPos(const AValue: TVector3);
@@ -375,6 +403,13 @@ begin
   Exit(FFlatRight);
 end;
 
+function TGLCameraFree.GetTransformedPos: TVector3;
+begin
+  if FTransformedPosInvalidated then
+    RecalculateTransformedPos;
+  Exit(FTransformedPos);
+end;
+
 procedure TGLCameraFree.SetRotation(const AValue: TVector2);
 begin
   if FRotation=AValue then exit;
@@ -394,9 +429,19 @@ begin
   FFlatRightFrontInvalidated := False;
 end;
 
+procedure TGLCameraFree.DeinvalidateTransformedPos;
+begin
+  FTransformedPosInvalidated := False;
+end;
+
 procedure TGLCameraFree.InvalidateFlatRightFront;
 begin
   FFlatRightFrontInvalidated := True;
+end;
+
+procedure TGLCameraFree.InvalidateTransformedPos;
+begin
+  FTransformedPosInvalidated := True;
 end;
 
 procedure TGLCameraFree.RecalculateFlatRightFront;
@@ -411,12 +456,23 @@ procedure TGLCameraFree.RecalculateModelView;
 var
   Mat: TMatrix4;
 begin
-  Mat := TranslationMatrix(Vector3(0, 0, FZoom)) * RotationMatrixX(FRotation.X) * RotationMatrixZ(FRotation.Y) * TranslationMatrix(FPos);
+  Mat := TranslationMatrix(Vector3(0, 0, FZoom)) * RotationMatrixX(FRotation.X) * RotationMatrixZ(FRotation.Y) * TranslationMatrix(-FPos);
   FModelView := Mat;
-  FRight := Normalize(Vector3(Mat[0], Mat[4], Mat[12]));
-  FUp := Normalize(Vector3(Mat[1], Mat[5], Mat[13]));
-  FFront := Normalize(Vector3(Mat[2], Mat[6], Mat[14]));
+  FModelViewHiRes := Mat;
+  FRight := Normalize(Vector3(Mat[0], Mat[1], Mat[2]));
+  FUp := Normalize(Vector3(Mat[4], Mat[5], Mat[6]));
+  FFront := Normalize(Vector3(Mat[8], Mat[9], Mat[10]));
   DeinvalidateModelView;
+end;
+
+procedure TGLCameraFree.RecalculateTransformedPos;
+var
+  Mat: TMatrix4;
+begin
+  if FModelViewInvalidated then
+    RecalculateModelView;
+  Mat := TranslationMatrix(FPos) * RotationMatrixZ(-FRotation.Y) * RotationMatrixX(-FRotation.X) * TranslationMatrix(Vector3(0, 0, -FZoom));
+  FTransformedPos := (Mat * Vector4(0.0, 0.0, 0.0, 1.0)).Vec3;
 end;
 
 { TGLCameraFreeSmooth }
@@ -538,11 +594,11 @@ begin
     L := VLength(D);
     if L <= 0.05 then
     begin
-      FAcceleration := D * 10.0;
+      FAcceleration := D * 50.0;
       FMoving := False;
     end
     else
-      FAcceleration := D * 10.0;
+      FAcceleration := D * 50.0;
   end;
 
   if FRotating then
@@ -563,8 +619,10 @@ begin
   end;
 
   TISqr := Sqr(TimeInterval);
-  if (FVelocity <> Vector2(0.0, 0.0)) or (FAcceleration <> Vector2(0.0, 0.0)) then
+  if not (FVelocity = Vector2(0.0, 0.0)) or not (FAcceleration = Vector2(0.0, 0.0)) then
   begin
+//    WriteLn(Format('%.16f %.16f', [FVelocity.X, FVelocity.Y]));
+//    WriteLn(Format('%.16f %.16f', [FAcceleration.X, FAcceleration.Y]));
     FPos.Vec2 += 0.5 * FAcceleration * TISqr + FVelocity * TimeInterval;
     FVelocity += FAcceleration * TimeInterval;
 
@@ -576,11 +634,12 @@ begin
 
     FVelocity /= 110 * TimeInterval;
     if Abs(FVelocity.X) <= VEL_EPSILON then
-      FAcceleration.X := 0.0;
+      FVelocity.X := 0.0;
     if Abs(FVelocity.Y) <= VEL_EPSILON then
-      FAcceleration.Y := 0.0;
+      FVelocity.Y := 0.0;
 
     InvalidateModelView;
+    DoMoved;
   end;
 
   if (FZoomVelocity <> 0.0) or (FZoomAcceleration <> 0.0) then
@@ -597,6 +656,7 @@ begin
       FZoomVelocity := 0.0;
 
     InvalidateModelView;
+    DoMoved;
   end;
 
   if (FRotationVelocity <> Vector2(0.0, 0.0)) or (FRotationAcceleration <> Vector2(0.0, 0.0)) then
@@ -620,11 +680,9 @@ begin
     InvalidateFlatRightFront;
   end;
 
-
-
   if FRotation.X < -(8*Pi/18) then
   begin
-    FRotationAcceleration.X := 0.0;
+    StopRotation(True);
     FRotation.X := -(8*Pi/18);
     InvalidateModelView;
     InvalidateFlatRightFront;
@@ -632,7 +690,7 @@ begin
 
   if FRotation.X > -(Pi/18) then
   begin
-    FRotationAcceleration.X := 0.0;
+    StopRotation(True);
     FRotation.X := -(Pi/18);
     InvalidateModelView;
     InvalidateFlatRightFront;
@@ -646,7 +704,7 @@ begin
   if FZoom >= -4.3 then
   begin
     FZoom := -4.3;
-    FZoomAcceleration := 0.0;
+    StopZoom(True);
     InvalidateModelView;
   end;
 end;

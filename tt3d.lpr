@@ -10,8 +10,9 @@ uses
   {$ENDIF}{$ENDIF}
   {$ifdef UseHeapTrc}heaptrc,{$endif}
   SysUtils, Classes, Geometry, math, dateutils, ioConfig, coreUIBootstrap,
-TransportGeometryGL, FileUtil, uiGL, GLMaterials, XMLGeometry, coreScene,
-GLHelpers, uiTT3D, GeometryColors, TerrainGeometry, Voronoi, GLCamera;
+  TransportGeometryGL, FileUtil, uiGL, GLMaterials, XMLGeometry, coreScene,
+  GLHelpers, uiTT3D, GeometryColors, TerrainGeometrySimple, Voronoi, GLCamera,
+  TerrainGeometryDynamic, TerrainSourcePerlinNoise;
 
 {$R *.res}
 

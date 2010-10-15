@@ -66,6 +66,8 @@ type
   TVector4f = array [0..3] of Single;
   PVector4f = ^TVector4f;
 
+  TTriangle3f = array [0..2] of TVector3f;
+
 operator + (A, B: TVector2): TVector2; inline;
 operator + (A, B: TVector3): TVector3; inline;
 operator + (A, B: TVector4): TVector4; inline;
@@ -89,6 +91,7 @@ operator * (A: TVectorFloat; B: TVector3): TVector3; inline;
 operator * (A: TVectorFloat; B: TVector4): TVector4; inline;
 
 operator * (A: TMatrix3; B: TVector3): TVector3; inline;
+operator * (A: TMatrix4; B: TVector4): TVector4; inline;
 operator * (A, B: TMatrix4): TMatrix4; inline;
 
 operator ** (A, B: TVector3): TVector3; inline;
@@ -144,6 +147,7 @@ function Vector4(Vec3: TVector3; W: TVectorFloat): TVector4; inline;
 function Vector4(X, Y, Z, W: TVectorFloat): TVector4; inline;
 function Vector4f(Vec4: TVector4): TVector4f; inline;
 function Vector4f(X, Y, Z: Single; W: Single = 1.0): TVector4f; inline;
+function Vector4f(Vec3f: TVector3f; W: Single = 1.0): TVector4f; inline;
 
 function RotationMatrix(Axis: TVector3; Angle: TVectorFloat): TMatrix3;
 function RotationMatrixX(Angle: TVectorFloat): TMatrix4;
@@ -152,6 +156,8 @@ function RotationMatrixZ(Angle: TVectorFloat): TMatrix4;
 function TranslationMatrix(const V: TVector3): TMatrix4; inline;
 
 function Intersection(const AOrigin, ADirection, BOrigin, BDirection: TVector2): TVector2;
+function Intersection(const ADirection, BDirection, BOffset: TVector2): TVector2;
+function IntersectionPlane(const AOrigin, ADirection, BNormal: TVector3): TVector3;
 
 function VecToAngle(Vec2: TVector2): TVectorFloat; inline;
 function AngleToVec(a: TVectorFloat): TVector2; inline;
@@ -303,6 +309,14 @@ begin
   Result.X := A[0] * B.X + A[3] * B.Y + A[6] * B.Z;
   Result.Y := A[1] * B.X + A[4] * B.Y + A[7] * B.Z;
   Result.Z := A[2] * B.X + A[5] * B.Z + A[8] * B.Z;
+end;
+
+operator * (A: TMatrix4; B: TVector4): TVector4; inline;
+begin
+  Result.X := A[0] * B.X + A[4] * B.Y + A[8] * B.Z + A[12] * B.W;
+  Result.Y := A[1] * B.X + A[5] * B.Y + A[9] * B.Z + A[13] * B.W;
+  Result.Z := A[2] * B.X + A[6] * B.Z + A[10] * B.Z + A[14] * B.W;
+  Result.W := A[3] * B.X + A[7] * B.Z + A[11] * B.Z + A[15] * B.W;
 end;
 
 operator * (A, B: TMatrix4): TMatrix4;
@@ -710,6 +724,14 @@ begin
   Result[3] := W;
 end;
 
+function Vector4f(Vec3f: TVector3f; W: Single): TVector4f; inline;
+begin
+  Result[0] := Vec3f[0];
+  Result[1] := Vec3f[1];
+  Result[2] := Vec3f[2];
+  Result[3] := W;
+end;
+
 function RotationMatrix(Axis: TVector3; Angle: TVectorFloat): TMatrix3;
 var
   RawSin, RawCos: float;
@@ -748,7 +770,6 @@ var
   S, C: TVectorFloat;
 begin
   sincos(Angle, sr, cr);
-  WriteLn(Angle);
   S := Sin(Angle);
   C := Cos(Angle);
   Result := IdentityMatrix4;
@@ -798,21 +819,64 @@ end;
 
 function Intersection(const AOrigin, ADirection, BOrigin, BDirection: TVector2
   ): TVector2;
-var
-  r: TVectorFloat;
 begin
   if AOrigin = BOrigin then
     Exit(AOrigin);
-  if (ADirection = BDiretion) or (ADirection = -BDirection) then
-    Exit(Vector2(NaN, NaN));
-  if ADirection.x = 0.0 then
-  begin
-    r := BDirection.y *
-  end
-  else
-  begin
+  Exit(Intersection(ADirection, BDirection, BOrigin - AOrigin));
+end;
 
-  end;
+function Intersection(const ADirection, BDirection, BOffset: TVector2
+  ): TVector2;
+var
+  s: TVectorFloat;
+begin
+  {$ifopt R+}
+  {$define WasR}
+  {$R-}
+  {$endif}
+  {$ifopt Q+}
+  {$define WasQ}
+  {$Q-}
+  {$endif}
+  if (ADirection = BDirection) or (ADirection = -BDirection) then
+    Exit(Vector2(NaN, NaN));
+  {$ifdef WasQ}
+  {$undef WasQ}
+  {$Q-}
+  {$endif}
+  {$ifdef WasR}
+  {$undef WasR}
+  {$R+}
+  {$endif}
+  s := -(ADirection.X * BOffset.Y - ADirection.Y * BOffset.Y) / (ADirection.X * BDirection.Y - ADirection.Y * BDirection.X);
+  Exit(BOffset + BDirection * s);
+end;
+
+function IntersectionPlane(const AOrigin, ADirection, BNormal: TVector3
+  ): TVector3;
+var
+  t: TVectorFloat;
+begin
+  {$ifopt R+}
+  {$define WasR}
+  {$R-}
+  {$endif}
+  {$ifopt Q+}
+  {$define WasQ}
+  {$Q-}
+  {$endif}
+  if (ADirection * BNormal = 0) then
+    Exit(Vector3(NaN, NaN, NaN));
+  {$ifdef WasQ}
+  {$undef WasQ}
+  {$Q-}
+  {$endif}
+  {$ifdef WasR}
+  {$undef WasR}
+  {$R+}
+  {$endif}
+  t := (AOrigin * BNormal) / (ADirection * BNormal);
+  Exit(AOrigin + ADirection * t);
 end;
 
 function VecToAngle(Vec2: TVector2): TVectorFloat; inline;

@@ -6,7 +6,8 @@ interface
 
 uses
   Classes, SysUtils, uiGL, GLGeometry, Geometry, ioSDL, dglOpenGL, GLHelpers,
-  ioConfig, sdl, TerrainGeometry, GLCamera;
+  ioConfig, sdl, TerrainGeometryDynamic, TerrainSourcePerlinNoise, GLCamera,
+  math;
 
 type
 
@@ -19,6 +20,10 @@ type
   private
     FDebugMaterial: TGLMaterial;
     FDebugBuffer: TGLGeometryBuffer;
+
+    FTerrainMaterial: TGLMaterial;
+    FTerrainBuffer: TGLGeometryBuffer;
+
     FAxis: TGLGeometryObject;
     FGrid: TGLGeometryObject;
 
@@ -31,7 +36,11 @@ type
     FRotating: Boolean;
     FZ: TVectorFloat;*)
     FCamera: TGLCameraFreeSmooth;
+    FCameraMoved: Boolean;
+
+    FTerrain: TTerrain;
   protected
+    procedure CameraMoved(Sender: TObject);
     procedure DoAbsMetricsChanged; override;
     procedure DoKeypress(Sym: TSDL_KeySym; Mode: TsdlKeyActionMode;
        var Handled: Boolean); override;
@@ -49,6 +58,8 @@ implementation
 constructor TTT3DScene.Create;
 var
   I: Integer;
+  v1, v2, o: TVector2;
+  Src: TTerrainSource;
 begin
   inherited Create;
   (*FZ := 0.0;
@@ -122,6 +133,18 @@ begin
   FCamera.Viewport.Top := AbsTop;
   FCamera.Viewport.Right := AbsLeft + AbsWidth;
   FCamera.Viewport.Bottom := AbsTop + AbsHeight;
+  FCamera.OnMoved := @CameraMoved;
+
+  v1 := Vector2(1.0, 0.0);
+  v2 := Vector2(0.0, -1.0);
+  o := Vector2(1.0, 1.0);
+  WriteLn(FormatVector(Intersection(v1, v2, o)));
+
+  FTerrainBuffer := TGLGeometryBuffer.Create(TGLGeometryFormatP4C4.GetNeededVertexSize);
+  FTerrainMaterial := TGLMaterial.Create(FTerrainBuffer, TGLGeometryFormatP4C4);
+
+  Src := TTerrainSourcePerlinNoise.Create(513, 513, 0, 0, 0.45, 8, 0.5, 0.5);
+  FTerrain := TTerrain.Create(513, 513, Src, FTerrainMaterial);
 end;
 
 destructor TTT3DScene.Destroy;
@@ -131,6 +154,11 @@ begin
   FDebugMaterial.Free;
   FDebugBuffer.Free;
   inherited Destroy;
+end;
+
+procedure TTT3DScene.CameraMoved(Sender: TObject);
+begin
+  FCameraMoved := True;
 end;
 
 procedure TTT3DScene.DoAbsMetricsChanged;
@@ -182,7 +210,7 @@ begin
     6: if Mode = kmPress then
     begin
       if SDL_GetKeyState(nil)[SDLK_LSHIFT] or SDL_GetKeyState(nil)[SDLK_RSHIFT] <> 0 then
-        FCamera.Accelerate(-FCamera.FlatRight * 10.0 * FCamera.Zoom * 2.0)
+        FCamera.Accelerate(FCamera.FlatRight * 10.0 * FCamera.Zoom * 2.0)
       else
         FCamera.AccelerateRotation(Vector2(0.0, -4*Pi))
     end;
@@ -190,7 +218,7 @@ begin
     7: if Mode = kmPress then
     begin
       if SDL_GetKeyState(nil)[SDLK_LSHIFT] or SDL_GetKeyState(nil)[SDLK_RSHIFT] <> 0 then
-        FCamera.Accelerate(FCamera.FlatRight * 10.0 * FCamera.Zoom * 2.0)
+        FCamera.Accelerate(-FCamera.FlatRight * 10.0 * FCamera.Zoom * 2.0)
       else
         FCamera.AccelerateRotation(Vector2(0.0, 4*pi))
     end;
@@ -209,7 +237,7 @@ begin
   end
   else if (Motion.state and SDL_BUTTON(2) <> 0) or ((Motion.state and SDL_BUTTON(1) <> 0) and (Motion.state and SDL_BUTTON(3) <> 0)) then
   begin
-    Factor := -FCamera.Zoom * 2.0;
+    Factor := FCamera.Zoom * 2.0;
     FCamera.Accelerate((FCamera.FlatRight * Motion.xrel + FCamera.FlatFront * Motion.yrel) * Factor);
     FCamera.StopMovement(False);
   end;
@@ -282,18 +310,28 @@ begin
     FMove.Z := -4.3;
     FMoveAccel.Z := 0.0;
   end;  *)
+  FCameraMoved := False;
   FCamera.Update(ATimeInterval);
+  if FCameraMoved then
+  begin
+    FTerrain.UpdateForFrustum(Vector3(FCamera.Pos.Vec2, FCamera.Zoom), Max(64.0 / Max(VLength(FCamera.Velocity) / 10.0 + FCamera.ZoomVelocity / 10.0, 1.0), 2.0), 0.8);
+    //WriteLn(FormatVector(IntersectionPlane(FCamera.TransformedPos, FCamera.Front, Vector3(0.0, 0.0, 1.0))));
+  end;
+  //WriteLn(FormatVector(FCamera.TransformedPos));
 
   DoUpdateBackgroundGeometry;
 end;
 
 procedure TTT3DScene.DoRenderBackground;
+(*var
+  I: Integer;
+  V: TVector4f;*)
 begin
   //SetupPerspective(AbsLeft, AbsWidth, AbsTop, AbsHeight, 1.0, 1000.0, Config.Video.FOV);
+  glClear(GL_DEPTH_BUFFER_BIT);
   glDisable(GL_SCISSOR_TEST);
   glEnable(GL_DEPTH_TEST);
-  glEnable(GL_CULL_FACE);
-  glCullFace(GL_CCW);
+  glDisable(GL_CULL_FACE);
 
   (*glTranslatef(0.0, 0.0, FMove.Z);
   glRotatef(FRot.X, 1.0, 0.0, 0.0);
@@ -304,6 +342,37 @@ begin
   FDebugMaterial.BindForRendering(False);
   FDebugMaterial.Render(GL_LINES);
   FDebugMaterial.UnbindForRendering;
+
+  glPointSize(2.0);
+  //FTerrain.DrawDirect;
+  //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+  //FTerrainMaterial.BindForRendering(False);
+  FTerrain.DrawDirect;
+  //FTerrainMaterial.UnbindForRendering;
+
+  (*glColor4f(1, 1, 1, 1);
+  glBegin(GL_TRIANGLES);
+    glVertex2f(-1.0, -1.0);
+    glVertex2f(-1.0, 1.0);
+    glVertex2f(1.0, -1.0);
+
+    with FTerrain.Geometry.Format as TGLGeometryFormatP4C4 do
+    begin
+      UseMap(FTerrain.Geometry.Map);
+
+      for I := 0 to FTerrain.Geometry.Count - 1 do
+      begin
+        V := Color[I];
+        glColor4fv(@V[0]);
+        V := Position[I];
+        glVertex4fv(@V[0]);
+        WriteLn(FormatVector(V));
+      end;
+
+      UseMap(nil);
+    end;
+  glEnd;
+    Halt(0);       *)
 
   SetupOrthoDefault(0, Config.Video.Width, 0, Config.Video.Height);
   glClear(GL_DEPTH_BUFFER_BIT);
