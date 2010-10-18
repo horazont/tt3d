@@ -148,7 +148,7 @@ var
   begin
     if StorageCapacity = Count then
     begin
-      Inc(StorageCapacity, FWidth div 4);
+      Inc(StorageCapacity, FWidth * 4);
       SetLength(TriangleStorage, StorageCapacity);
       SetLength(NormalStorage, StorageCapacity);
     end;
@@ -320,7 +320,7 @@ begin
       begin
         Position[J+L] := Vector4f(TriangleStorage[I][L], 1.0);
         C := (TriangleStorage[I][L][2] + 1.0) / 2.0;
-        Color[J+L] := Vector4f(C, C, C);
+        Color[J+L] := Vector4f(C, C, C, 0.1);
         //Normal[J+L] := NormalStorage[I][L];
       end;
       Inc(J, 3);

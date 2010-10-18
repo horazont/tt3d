@@ -143,7 +143,7 @@ begin
   FTerrainBuffer := TGLGeometryBuffer.Create(TGLGeometryFormatP4C4.GetNeededVertexSize);
   FTerrainMaterial := TGLMaterial.Create(FTerrainBuffer, TGLGeometryFormatP4C4);
 
-  Src := TTerrainSourcePerlinNoise.Create(513, 513, 0, 0, 0.45, 8, 0.5, 0.5);
+  Src := TTerrainSourcePerlinNoise.Create(513, 513, 0, 0, 0.65, 8, 0.25, 0.25);
   FTerrain := TTerrain.Create(513, 513, Src, FTerrainMaterial);
 end;
 
@@ -314,7 +314,7 @@ begin
   FCamera.Update(ATimeInterval);
   if FCameraMoved then
   begin
-    FTerrain.UpdateForFrustum(Vector3(FCamera.Pos.Vec2, FCamera.Zoom), Max(64.0 / Max(VLength(FCamera.Velocity) / 10.0 + FCamera.ZoomVelocity / 10.0, 1.0), 2.0), 0.8);
+    FTerrain.UpdateForFrustum({Vector3(FCamera.Pos.Vec2, FCamera.Zoom)}FCamera.TransformedPos, {Max(64.0 / Max(VLength(FCamera.Velocity) / 10.0 + FCamera.ZoomVelocity / 10.0, 1.0), 2.0)} 64.0, 0.5);
     //WriteLn(FormatVector(IntersectionPlane(FCamera.TransformedPos, FCamera.Front, Vector3(0.0, 0.0, 1.0))));
   end;
   //WriteLn(FormatVector(FCamera.TransformedPos));
@@ -330,7 +330,7 @@ begin
   //SetupPerspective(AbsLeft, AbsWidth, AbsTop, AbsHeight, 1.0, 1000.0, Config.Video.FOV);
   glClear(GL_DEPTH_BUFFER_BIT);
   glDisable(GL_SCISSOR_TEST);
-  glEnable(GL_DEPTH_TEST);
+  glDisable(GL_DEPTH_TEST);
   glDisable(GL_CULL_FACE);
 
   (*glTranslatef(0.0, 0.0, FMove.Z);
@@ -343,11 +343,17 @@ begin
   FDebugMaterial.Render(GL_LINES);
   FDebugMaterial.UnbindForRendering;
 
-  glPointSize(2.0);
+  //glPointSize(2.0);
   //FTerrain.DrawDirect;
   //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
   //FTerrainMaterial.BindForRendering(False);
+  glEnable(GL_BLEND);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE);
   FTerrain.DrawDirect;
+  //glDisable(GL_BLEND);
+
+  glColor4f(1, 1, 1, 1);
+  //glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
   //FTerrainMaterial.UnbindForRendering;
 
   (*glColor4f(1, 1, 1, 1);
