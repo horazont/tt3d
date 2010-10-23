@@ -6,8 +6,7 @@ interface
 
 uses
   Classes, SysUtils, uiGL, GLGeometry, Geometry, ioSDL, dglOpenGL, GLHelpers,
-  ioConfig, sdl, TerrainGeometryDynamic, TerrainSourcePerlinNoise, GLCamera,
-  math;
+  ioConfig, sdl, TerrainGeometryDynamic, TerrainSourcePerlinNoise, GLCamera;
 
 type
 
@@ -20,9 +19,6 @@ type
   private
     FDebugMaterial: TGLMaterial;
     FDebugBuffer: TGLGeometryBuffer;
-
-    FTerrainMaterial: TGLMaterial;
-    FTerrainBuffer: TGLGeometryBuffer;
 
     FAxis: TGLGeometryObject;
     FGrid: TGLGeometryObject;
@@ -39,6 +35,9 @@ type
     FCameraMoved: Boolean;
 
     FTerrain: TTerrain;
+
+    FTerrainMaterial: TGLMaterial;
+    FTerrainBuffer: TGLGeometryBuffer;
   protected
     procedure CameraMoved(Sender: TObject);
     procedure DoAbsMetricsChanged; override;
@@ -143,8 +142,10 @@ begin
   FTerrainBuffer := TGLGeometryBuffer.Create(TGLGeometryFormatP4C4.GetNeededVertexSize);
   FTerrainMaterial := TGLMaterial.Create(FTerrainBuffer, TGLGeometryFormatP4C4);
 
-  Src := TTerrainSourcePerlinNoise.Create(513, 513, 0, 0, 0.45, 8, 0.5, 0.5);
-  FTerrain := TTerrain.Create(513, 513, Src, FTerrainMaterial);
+  Src := TTerrainSourcePerlinNoise.Create(257, 257, 0, 0, 0.65, 8, 0.25, 0.25);
+  FTerrain := TTerrain.Create(257, 257, Src, FTerrainMaterial);
+
+  FTerrain.UpdateForFrustum({Vector3(FCamera.Pos.Vec2, FCamera.Zoom)}FCamera.TransformedPos, {Max(64.0 / Max(VLength(FCamera.Velocity) / 10.0 + FCamera.ZoomVelocity / 10.0, 1.0), 2.0)} 64.0, 0.5);
 end;
 
 destructor TTT3DScene.Destroy;
@@ -212,7 +213,7 @@ begin
       if SDL_GetKeyState(nil)[SDLK_LSHIFT] or SDL_GetKeyState(nil)[SDLK_RSHIFT] <> 0 then
         FCamera.Accelerate(FCamera.FlatRight * 10.0 * FCamera.Zoom * 2.0)
       else
-        FCamera.AccelerateRotation(Vector2(0.0, -4*Pi))
+        FCamera.AccelerateRotation(Vector2(0.0, -16*Pi))
     end;
 
     7: if Mode = kmPress then
@@ -220,14 +221,13 @@ begin
       if SDL_GetKeyState(nil)[SDLK_LSHIFT] or SDL_GetKeyState(nil)[SDLK_RSHIFT] <> 0 then
         FCamera.Accelerate(-FCamera.FlatRight * 10.0 * FCamera.Zoom * 2.0)
       else
-        FCamera.AccelerateRotation(Vector2(0.0, 4*pi))
+        FCamera.AccelerateRotation(Vector2(0.0, 16*pi))
     end;
   end;
 end;
 
 procedure TTT3DScene.DoMouseMotion(Motion: TsdlMouseMotionEventData);
 var
-  V: TVector2;
   Factor: TVectorFloat;
 begin
   if Motion.state and SDL_BUTTON(3) <> 0 then
@@ -244,77 +244,12 @@ begin
 end;
 
 procedure TTT3DScene.DoUpdate(const ATimeInterval: Double);
-var
-  D: TVector2;
-  L: TVectorFloat;
 begin
-  (*if FMoving then
-  begin
-    D := FMoveTarget - FMove.Vec2;
-    L := VLength(D);
-    if L <= 0.05 then
-    begin
-      FMoveSpeed := Vector3(D * 10.0, FMoveAccel.Z);
-      FMoving := False;
-    end
-    else
-      FMoveSpeed := Vector3(D * 10.0, FMoveAccel.Z);
-  end;
-
-  if FRotating then
-  begin
-    D := FRotateTarget - FRot;
-    if Abs(D.Y) > 180.0 then
-      D.Y := -D.Y;
-    L := VLength(D);
-    if L <= 0.05 then
-    begin
-      FRotating := False;
-      FRotSpeed := D * 7.5;
-    end
-    else
-    begin
-      FRotSpeed := D * 7.5;
-    end;
-  end;
-
-  FMove += 0.5 * FMoveAccel * ATimeInterval * ATimeInterval + FMoveSpeed * ATimeInterval;
-  FMoveSpeed += FMoveAccel * ATimeInterval;
-  FMoveAccel /= 180 * ATimeInterval;
-  FMoveSpeed /= 110 * ATimeInterval;
-
-  FRot += 0.5 * FRotAccel * ATimeInterval * ATimeInterval + FRotSpeed * ATimeInterval;
-  FRotSpeed += FRotAccel * ATimeInterval;
-  FRotAccel /= 180 * ATimeInterval;
-  FRotSpeed /= 110 * ATimeInterval;
-
-  if FRot.X < -80.0 then
-  begin
-    FRotAccel.X := 0.0;
-    FRot.X := -80.0;
-  end;
-
-  if FRot.X > -10.0 then
-  begin
-    FRotAccel.X := 0.0;
-    FRot.X := -10.0;
-  end;
-
-  if FRot.Y > 360.0 then
-    FRot.Y -= 360.0;
-  if FRot.Y < 0.0 then
-    FRot.Y += 360.0;
-
-  if FMove.Z >= -4.3 then
-  begin
-    FMove.Z := -4.3;
-    FMoveAccel.Z := 0.0;
-  end;  *)
   FCameraMoved := False;
   FCamera.Update(ATimeInterval);
   if FCameraMoved then
   begin
-    FTerrain.UpdateForFrustum(Vector3(FCamera.Pos.Vec2, FCamera.Zoom), Max(64.0 / Max(VLength(FCamera.Velocity) / 10.0 + FCamera.ZoomVelocity / 10.0, 1.0), 2.0), 0.8);
+//    FTerrain.UpdateForFrustum({Vector3(FCamera.Pos.Vec2, FCamera.Zoom)}FCamera.TransformedPos, {Max(64.0 / Max(VLength(FCamera.Velocity) / 10.0 + FCamera.ZoomVelocity / 10.0, 1.0), 2.0)} 64.0, 0.5);
     //WriteLn(FormatVector(IntersectionPlane(FCamera.TransformedPos, FCamera.Front, Vector3(0.0, 0.0, 1.0))));
   end;
   //WriteLn(FormatVector(FCamera.TransformedPos));
@@ -331,6 +266,7 @@ begin
   glClear(GL_DEPTH_BUFFER_BIT);
   glDisable(GL_SCISSOR_TEST);
   glEnable(GL_DEPTH_TEST);
+  glDisable(GL_BLEND);
   glDisable(GL_CULL_FACE);
 
   (*glTranslatef(0.0, 0.0, FMove.Z);
@@ -343,11 +279,15 @@ begin
   FDebugMaterial.Render(GL_LINES);
   FDebugMaterial.UnbindForRendering;
 
-  glPointSize(2.0);
+  //glPointSize(2.0);
   //FTerrain.DrawDirect;
-  //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+  glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
   //FTerrainMaterial.BindForRendering(False);
+  //glBlendFunc(GL_SRC_ALPHA, GL_ONE);
   FTerrain.DrawDirect;
+
+  glColor4f(1, 1, 1, 1);
+  glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
   //FTerrainMaterial.UnbindForRendering;
 
   (*glColor4f(1, 1, 1, 1);
@@ -379,6 +319,7 @@ begin
   glDisable(GL_DEPTH_TEST);
   glEnable(GL_SCISSOR_TEST);
   glDisable(GL_CULL_FACE);
+  glEnable(GL_BLEND);
 
   DoRenderBackgroundGeometry;
 end;

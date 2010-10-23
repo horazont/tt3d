@@ -145,6 +145,7 @@ function Vector3f(X, Y, Z: Single): TVector3f; inline;
 function Vector4(Vec2: TVector2; Z, W: TVectorFloat): TVector4; inline;
 function Vector4(Vec3: TVector3; W: TVectorFloat): TVector4; inline;
 function Vector4(X, Y, Z, W: TVectorFloat): TVector4; inline;
+function Vector4(Vec4: TVector4f): TVector4; inline;
 function Vector4f(Vec4: TVector4): TVector4f; inline;
 function Vector4f(X, Y, Z: Single; W: Single = 1.0): TVector4f; inline;
 function Vector4f(Vec3f: TVector3f; W: Single = 1.0): TVector4f; inline;
@@ -706,6 +707,14 @@ begin
   Result.Y := Y;
   Result.Z := Z;
   Result.W := W;
+end;
+
+function Vector4(Vec4: TVector4f): TVector4;
+begin
+  Result.X := Vec4[0];
+  Result.Y := Vec4[1];
+  Result.Z := Vec4[2];
+  Result.W := Vec4[3];
 end;
 
 function Vector4f(Vec4: TVector4): TVector4f; inline;

@@ -28,6 +28,10 @@ type
   TIndexEntryHandle = PIndexEntry;
   TIndexHandleList = specialize TFPGList<TIndexEntryHandle>;
 
+  TGLBoundingBox = record
+    Origin, Dimension: TVector3;
+  end;
+
   { TGLGenericBuffer }
 
   TGLGenericBuffer = class (TObject)

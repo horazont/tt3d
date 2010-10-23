@@ -63,7 +63,7 @@ begin
   FWidth := AWidth;
   FHeight := AHeight;
   if ((FWidth-1) mod 64 <> 0) or ((FHeight-1) mod 64 <> 0) or (FHeight <> FWidth) then
-    raise ETerrainError.CreateFmt('Invalid terrain size: %d×%d, scales are required to be equal and multiples of %d.', [TERRAIN_GEOMETRY_BLOCK_SIZE]);
+    raise ETerrainError.CreateFmt('Invalid terrain size: %d×%d, scales are required to be equal and multiples of %d.', [FWidth, FHeight, TERRAIN_GEOMETRY_BLOCK_SIZE]);
 
   FMaterial := AMaterial;
   if not (FMaterial.Format is TGLGeometryFormatP4C4) then
@@ -148,7 +148,7 @@ var
   begin
     if StorageCapacity = Count then
     begin
-      Inc(StorageCapacity, FWidth div 4);
+      Inc(StorageCapacity, FWidth * 4);
       SetLength(TriangleStorage, StorageCapacity);
       SetLength(NormalStorage, StorageCapacity);
     end;
@@ -320,7 +320,7 @@ begin
       begin
         Position[J+L] := Vector4f(TriangleStorage[I][L], 1.0);
         C := (TriangleStorage[I][L][2] + 1.0) / 2.0;
-        Color[J+L] := Vector4f(C, C, C);
+        Color[J+L] := Vector4f(C, C, C, 0.1);
         //Normal[J+L] := NormalStorage[I][L];
       end;
       Inc(J, 3);

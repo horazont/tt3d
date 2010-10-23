@@ -12,7 +12,8 @@ uses
   SysUtils, Classes, Geometry, math, dateutils, ioConfig, coreUIBootstrap,
   TransportGeometryGL, FileUtil, uiGL, GLMaterials, XMLGeometry, coreScene,
   GLHelpers, uiTT3D, GeometryColors, TerrainGeometrySimple, Voronoi, GLCamera,
-  TerrainGeometryDynamic, TerrainSourcePerlinNoise;
+  TerrainGeometryDynamic, TerrainSourcePerlinNoise, GLOctree, GLFrustum,
+GLObject;
 
 {$R *.res}
 
