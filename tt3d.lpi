@@ -229,6 +229,7 @@
         <CursorPos X="44" Y="16"/>
         <UsageCount Value="139"/>
         <Loaded Value="True"/>
+        <LoadedDesigner Value="True"/>
       </Unit20>
       <Unit21>
         <Filename Value="modules/io/ioconfig.pas"/>
@@ -529,7 +530,7 @@
         <Loaded Value="True"/>
       </Unit53>
     </Units>
-    <JumpHistory Count="30" HistoryIndex="29">
+    <JumpHistory Count="17" HistoryIndex="16">
       <Position1>
         <Filename Value="modules/core/corescene.pas"/>
         <Caret Line="318" Column="37" TopLine="284"/>
