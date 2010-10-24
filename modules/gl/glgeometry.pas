@@ -245,7 +245,7 @@ type
   public
     constructor Create; override;
     constructor Create(const AGeometryBuffer: TGLGeometryBuffer;
-      const AFormat: TGLGeometryFormatClass);
+      const AFormat: TGLGeometryFormatClass); virtual;
     destructor Destroy; override;
   private
     FBoundAsStream: Boolean;
@@ -259,10 +259,10 @@ type
     property StaticIndexBuffer: TGLIndexBuffer read FStaticIndexBuffer;
     property StreamIndexBuffer: TGLStreamIndexBuffer read FStreamIndexBuffer;
   public
-    procedure BindForRendering(const UseStream: Boolean);
+    procedure BindForRendering(const UseStream: Boolean); virtual;
     procedure DumpStream;
     procedure Render(AsType: TGLenum);
-    procedure UnbindForRendering;
+    procedure UnbindForRendering; virtual;
   end;
 
   { TGLGeometryObject }

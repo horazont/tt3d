@@ -5,7 +5,7 @@ unit GLFrustum;
 interface
 
 uses
-  Classes, SysUtils, Geometry, GLGeometry, GTObject;
+  Classes, SysUtils, Geometry, GLGeometry, GLObject;
 
 type
   TGLFrustum = class (TObject)

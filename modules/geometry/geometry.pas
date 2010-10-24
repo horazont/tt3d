@@ -71,6 +71,7 @@ type
 operator + (A, B: TVector2): TVector2; inline;
 operator + (A, B: TVector3): TVector3; inline;
 operator + (A, B: TVector4): TVector4; inline;
+operator + (A: TVector3; B: TVectorFloat): TVector3; inline;
 
 operator - (A, B: TVector2): TVector2; inline;
 operator - (A, B: TVector3): TVector3; inline;
@@ -204,6 +205,13 @@ begin
   Result.Y := A.Y + B.Y;
   Result.Z := A.Z + B.Z;
   Result.W := A.W + B.W;
+end;
+
+operator + (A: TVector3; B: TVectorFloat): TVector3;
+begin
+  Result.X := A.X + B;
+  Result.Y := A.Y + B;
+  Result.Z := A.Z + B;
 end;
 
 operator - (A, B: TVector2): TVector2; inline;

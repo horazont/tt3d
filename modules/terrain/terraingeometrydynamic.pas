@@ -223,17 +223,17 @@ const
       xEnd := X + Size * Vertices[V2][0];
       yEnd := Y + Size * Vertices[V2][1];
 
-      vStart := Vector3f(xStart, yStart, GetHeight(xStart, yStart));
-      vEnd := Vector3f(xEnd, yEnd, GetHeight(xEnd, yEnd));
+      vStart := Vector3f(xStart, yStart, GetHeight(xStart, yStart) * 4.0);
+      vEnd := Vector3f(xEnd, yEnd, GetHeight(xEnd, yEnd) * 4.0);
 
       (*WriteLn(FormatVector(MidVertex));
       WriteLn(FormatVector(vStart));
       WriteLn(FormatVector(vEnd));
       WriteLn(FormatVector(MidVertex - vStart));
       WriteLn(FormatVector(vStart - vEnd));*)
-      vNormal := Normalize((MidVertex - vStart) ** (vStart - vEnd));
+      vNormal := Normalize((vStart - vEnd) ** (MidVertex - vStart));
 
-      Push(MidVertex, vStart, vEnd, vNormal, vNormal, vNormal);
+      Push(vStart, MidVertex, vEnd, vNormal, vNormal, vNormal);
     end;
 
   var
@@ -243,7 +243,7 @@ const
       Exit;
 
     HSize := Size div 2;
-    MidVertex := Vector3f(X, Y, GetHeight(X, Y));
+    MidVertex := Vector3f(X, Y, GetHeight(X, Y) * 4.0);
 
     if Size > 1 then
     begin
@@ -311,7 +311,7 @@ begin
   end;
 
   J := 0;
-  with FGeometry.Format as TGLGeometryFormatP4C4 do
+  with FGeometry.Format as TGLGeometryFormatP4C4T2N3F do
   begin
     UseMap(FGeometry.Map);
     for I := 0 to Count - 1 do
@@ -319,9 +319,14 @@ begin
       for L := 0 to 2 do
       begin
         Position[J+L] := Vector4f(TriangleStorage[I][L], 1.0);
-        C := (TriangleStorage[I][L][2] + 1.0) / 2.0;
-        Color[J+L] := Vector4f(C, C, C, 0.1);
-        //Normal[J+L] := NormalStorage[I][L];
+        //C := (TriangleStorage[I][L][2] + 4.0) * 0.125;
+        //Color[J+L] := Vector4f(C, C, C, 0.1);
+
+        Color[J+L] := Vector4((NormalStorage[I][L] + 1.0) * 0.5, 1.0);
+        //Color[J+L] := Vector4(0.75, 0.75, 0.75, 1.0);
+
+
+        Normal[J+L] := NormalStorage[I][L];
       end;
       Inc(J, 3);
     end;

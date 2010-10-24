@@ -13,7 +13,7 @@ uses
   TransportGeometryGL, FileUtil, uiGL, GLMaterials, XMLGeometry, coreScene,
   GLHelpers, uiTT3D, GeometryColors, TerrainGeometrySimple, Voronoi, GLCamera,
   TerrainGeometryDynamic, TerrainSourcePerlinNoise, GLOctree, GLFrustum,
-GLObject;
+GLObject, GLShaderMaterial, GLShader;
 
 {$R *.res}
 

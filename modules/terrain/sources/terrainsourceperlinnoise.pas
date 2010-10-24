@@ -58,8 +58,8 @@ class function TTerrainSourcePerlinNoise.InterpolateCos(const A,
 var
   FC: TVectorFloat;
 begin
-  FC := Cos(F * Pi / 2.0);
-  Exit((1.0 - FC) * A + FC * B);
+  FC := Cos(F * Pi * 0.5);
+  Exit(FC * A + (1.0 - FC) * B);
 end;
 
 {$ifopt Q+}

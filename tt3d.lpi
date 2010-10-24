@@ -44,7 +44,7 @@
         <PackageName Value="dglsdk"/>
       </Item3>
     </RequiredPackages>
-    <Units Count="54">
+    <Units Count="57">
       <Unit0>
         <Filename Value="tt3d.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -52,8 +52,8 @@
         <EditorIndex Value="0"/>
         <WindowIndex Value="0"/>
         <TopLine Value="1"/>
-        <CursorPos X="31" Y="24"/>
-        <UsageCount Value="175"/>
+        <CursorPos X="76" Y="27"/>
+        <UsageCount Value="189"/>
         <Loaded Value="True"/>
         <LoadedDesigner Value="True"/>
       </Unit0>
@@ -65,17 +65,17 @@
         <WindowIndex Value="0"/>
         <TopLine Value="791"/>
         <CursorPos X="36" Y="822"/>
-        <UsageCount Value="177"/>
+        <UsageCount Value="191"/>
       </Unit1>
       <Unit2>
         <Filename Value="modules/geometry/geometry.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="Geometry"/>
-        <EditorIndex Value="5"/>
+        <EditorIndex Value="6"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="622"/>
-        <CursorPos X="11" Y="717"/>
-        <UsageCount Value="177"/>
+        <TopLine Value="900"/>
+        <CursorPos X="11" Y="214"/>
+        <UsageCount Value="191"/>
         <Loaded Value="True"/>
       </Unit2>
       <Unit3>
@@ -84,14 +84,14 @@
         <WindowIndex Value="0"/>
         <TopLine Value="1"/>
         <CursorPos X="18" Y="352"/>
-        <UsageCount Value="5"/>
+        <UsageCount Value="4"/>
       </Unit3>
       <Unit4>
         <Filename Value="/usr/share/fpcsrc/rtl/inc/mvecimp.inc"/>
         <WindowIndex Value="0"/>
         <TopLine Value="1"/>
         <CursorPos X="5" Y="222"/>
-        <UsageCount Value="5"/>
+        <UsageCount Value="4"/>
       </Unit4>
       <Unit5>
         <Filename Value="modules/transport/transportgeometry.pas"/>
@@ -99,7 +99,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="1"/>
         <CursorPos X="23" Y="22"/>
-        <UsageCount Value="64"/>
+        <UsageCount Value="63"/>
       </Unit5>
       <Unit6>
         <Filename Value="modules/io/messageloop.pas"/>
@@ -108,7 +108,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="1"/>
         <CursorPos X="18" Y="29"/>
-        <UsageCount Value="175"/>
+        <UsageCount Value="189"/>
       </Unit6>
       <Unit7>
         <Filename Value="modules/io/messageloopsdl.pas"/>
@@ -116,7 +116,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="1"/>
         <CursorPos X="9" Y="32"/>
-        <UsageCount Value="5"/>
+        <UsageCount Value="4"/>
       </Unit7>
       <Unit8>
         <Filename Value="includes/config.inc"/>
@@ -124,7 +124,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="1"/>
         <CursorPos X="18" Y="1"/>
-        <UsageCount Value="175"/>
+        <UsageCount Value="189"/>
       </Unit8>
       <Unit9>
         <Filename Value="/usr/share/fpcsrc/packages/fcl-base/src/contnrs.pp"/>
@@ -132,7 +132,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="556"/>
         <CursorPos X="21" Y="589"/>
-        <UsageCount Value="8"/>
+        <UsageCount Value="7"/>
       </Unit9>
       <Unit10>
         <Filename Value="modules/pathfinder/pathfinderrail.pas"/>
@@ -141,7 +141,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="1"/>
         <CursorPos X="14" Y="43"/>
-        <UsageCount Value="174"/>
+        <UsageCount Value="188"/>
       </Unit10>
       <Unit11>
         <Filename Value="modules/pathfinder/pathfinderbase.pas"/>
@@ -150,7 +150,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="34"/>
         <CursorPos X="12" Y="68"/>
-        <UsageCount Value="174"/>
+        <UsageCount Value="188"/>
       </Unit11>
       <Unit12>
         <Filename Value="../something/gfxmanager_opengl2vbo.pas"/>
@@ -158,7 +158,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="40"/>
         <CursorPos X="44" Y="95"/>
-        <UsageCount Value="2"/>
+        <UsageCount Value="1"/>
       </Unit12>
       <Unit13>
         <Filename Value="modules/gl/glgeometrymanager.pas"/>
@@ -166,7 +166,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="56"/>
         <CursorPos X="68" Y="39"/>
-        <UsageCount Value="6"/>
+        <UsageCount Value="5"/>
       </Unit13>
       <Unit14>
         <Filename Value="modules/gl/glgeometrymanagerbase.pas"/>
@@ -174,7 +174,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="1"/>
         <CursorPos X="44" Y="9"/>
-        <UsageCount Value="6"/>
+        <UsageCount Value="5"/>
       </Unit14>
       <Unit15>
         <Filename Value="modules/gl/glgeometrymanagerimmediate.pas"/>
@@ -182,7 +182,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="41"/>
         <CursorPos X="1" Y="1"/>
-        <UsageCount Value="6"/>
+        <UsageCount Value="5"/>
       </Unit15>
       <Unit16>
         <Filename Value="modules/gl/glgeometrymanagervbo.pas"/>
@@ -190,17 +190,17 @@
         <WindowIndex Value="0"/>
         <TopLine Value="1"/>
         <CursorPos X="1" Y="1"/>
-        <UsageCount Value="6"/>
+        <UsageCount Value="5"/>
       </Unit16>
       <Unit17>
         <Filename Value="modules/gl/glgeometry.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="GLGeometry"/>
-        <EditorIndex Value="6"/>
+        <EditorIndex Value="7"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="1"/>
-        <CursorPos X="33" Y="32"/>
-        <UsageCount Value="168"/>
+        <TopLine Value="219"/>
+        <CursorPos X="55" Y="248"/>
+        <UsageCount Value="182"/>
         <Loaded Value="True"/>
       </Unit17>
       <Unit18>
@@ -209,7 +209,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="697"/>
         <CursorPos X="33" Y="700"/>
-        <UsageCount Value="12"/>
+        <UsageCount Value="11"/>
       </Unit18>
       <Unit19>
         <Filename Value="modules/io/iosdl.pas"/>
@@ -217,19 +217,18 @@
         <WindowIndex Value="0"/>
         <TopLine Value="94"/>
         <CursorPos X="102" Y="116"/>
-        <UsageCount Value="27"/>
+        <UsageCount Value="26"/>
       </Unit19>
       <Unit20>
         <Filename Value="modules/core/coreuibootstrap.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="coreUIBootstrap"/>
-        <EditorIndex Value="2"/>
+        <EditorIndex Value="3"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="16"/>
+        <TopLine Value="136"/>
         <CursorPos X="44" Y="16"/>
-        <UsageCount Value="139"/>
+        <UsageCount Value="153"/>
         <Loaded Value="True"/>
-        <LoadedDesigner Value="True"/>
       </Unit20>
       <Unit21>
         <Filename Value="modules/io/ioconfig.pas"/>
@@ -238,7 +237,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="1"/>
         <CursorPos X="42" Y="21"/>
-        <UsageCount Value="136"/>
+        <UsageCount Value="150"/>
         <Loaded Value="True"/>
         <LoadedDesigner Value="True"/>
       </Unit21>
@@ -248,7 +247,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="671"/>
         <CursorPos X="41" Y="685"/>
-        <UsageCount Value="5"/>
+        <UsageCount Value="4"/>
       </Unit22>
       <Unit23>
         <Filename Value="../../lcl/x3toolset/packages/gametoolset/gtconfig.pas"/>
@@ -256,15 +255,17 @@
         <WindowIndex Value="0"/>
         <TopLine Value="1"/>
         <CursorPos X="40" Y="49"/>
-        <UsageCount Value="9"/>
+        <UsageCount Value="8"/>
       </Unit23>
       <Unit24>
         <Filename Value="../packages/dglsdk/src/dglOpenGL.pas"/>
         <UnitName Value="dglOpenGL"/>
+        <EditorIndex Value="10"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="1840"/>
-        <CursorPos X="3" Y="1868"/>
-        <UsageCount Value="7"/>
+        <TopLine Value="7192"/>
+        <CursorPos X="9" Y="7220"/>
+        <UsageCount Value="14"/>
+        <Loaded Value="True"/>
       </Unit24>
       <Unit25>
         <Filename Value="../../lcl/x3toolset/packages/gametoolset/gtbase.pas"/>
@@ -272,7 +273,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="1408"/>
         <CursorPos X="79" Y="1424"/>
-        <UsageCount Value="13"/>
+        <UsageCount Value="12"/>
       </Unit25>
       <Unit26>
         <Filename Value="../packages/wilson/xml.pas"/>
@@ -280,7 +281,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="109"/>
         <CursorPos X="14" Y="137"/>
-        <UsageCount Value="8"/>
+        <UsageCount Value="7"/>
       </Unit26>
       <Unit27>
         <Filename Value="../packages/stwcore/stwintmap.pas"/>
@@ -288,7 +289,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="16"/>
         <CursorPos X="20" Y="34"/>
-        <UsageCount Value="18"/>
+        <UsageCount Value="17"/>
       </Unit27>
       <Unit28>
         <Filename Value="modules/transport/geometry/transportgeometrygl.pas"/>
@@ -298,7 +299,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="359"/>
         <CursorPos X="1" Y="414"/>
-        <UsageCount Value="123"/>
+        <UsageCount Value="137"/>
       </Unit28>
       <Unit29>
         <Filename Value="../packages/dglsdk/src/geometry.pas"/>
@@ -306,7 +307,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="330"/>
         <CursorPos X="110" Y="343"/>
-        <UsageCount Value="12"/>
+        <UsageCount Value="11"/>
       </Unit29>
       <Unit30>
         <Filename Value="/usr/share/fpcsrc/rtl/objpas/fgl.pp"/>
@@ -314,17 +315,17 @@
         <WindowIndex Value="0"/>
         <TopLine Value="30"/>
         <CursorPos X="14" Y="103"/>
-        <UsageCount Value="3"/>
+        <UsageCount Value="2"/>
       </Unit30>
       <Unit31>
         <Filename Value="modules/ui/uigl.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="uiGL"/>
-        <EditorIndex Value="9"/>
+        <EditorIndex Value="14"/>
         <WindowIndex Value="0"/>
         <TopLine Value="431"/>
         <CursorPos X="108" Y="431"/>
-        <UsageCount Value="94"/>
+        <UsageCount Value="108"/>
         <Loaded Value="True"/>
       </Unit31>
       <Unit32>
@@ -334,7 +335,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="1"/>
         <CursorPos X="54" Y="10"/>
-        <UsageCount Value="93"/>
+        <UsageCount Value="107"/>
       </Unit32>
       <Unit33>
         <Filename Value="modules/geometry/xmlgeometry.pas"/>
@@ -343,7 +344,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="21"/>
         <CursorPos X="21" Y="65"/>
-        <UsageCount Value="90"/>
+        <UsageCount Value="104"/>
       </Unit33>
       <Unit34>
         <Filename Value="../hypercube/main.pas"/>
@@ -351,17 +352,18 @@
         <WindowIndex Value="0"/>
         <TopLine Value="121"/>
         <CursorPos X="61" Y="146"/>
-        <UsageCount Value="5"/>
+        <UsageCount Value="4"/>
       </Unit34>
       <Unit35>
         <Filename Value="modules/core/corescene.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="coreScene"/>
+        <IsVisibleTab Value="True"/>
         <EditorIndex Value="1"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="142"/>
-        <CursorPos X="121" Y="198"/>
-        <UsageCount Value="71"/>
+        <TopLine Value="1"/>
+        <CursorPos X="8" Y="10"/>
+        <UsageCount Value="85"/>
         <Loaded Value="True"/>
       </Unit35>
       <Unit36>
@@ -371,17 +373,17 @@
         <WindowIndex Value="0"/>
         <TopLine Value="1"/>
         <CursorPos X="3" Y="35"/>
-        <UsageCount Value="71"/>
+        <UsageCount Value="85"/>
       </Unit36>
       <Unit37>
         <Filename Value="modules/ui/uitt3d.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="uiTT3D"/>
-        <EditorIndex Value="10"/>
+        <EditorIndex Value="15"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="273"/>
+        <TopLine Value="14"/>
         <CursorPos X="43" Y="14"/>
-        <UsageCount Value="70"/>
+        <UsageCount Value="84"/>
         <Loaded Value="True"/>
       </Unit37>
       <Unit38>
@@ -391,7 +393,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="19"/>
         <CursorPos X="56" Y="74"/>
-        <UsageCount Value="70"/>
+        <UsageCount Value="84"/>
       </Unit38>
       <Unit39>
         <Filename Value="../catest/main.pas"/>
@@ -399,7 +401,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="226"/>
         <CursorPos X="1" Y="293"/>
-        <UsageCount Value="6"/>
+        <UsageCount Value="5"/>
       </Unit39>
       <Unit40>
         <Filename Value="modules/terrain/terraingeometrysimple.pas"/>
@@ -408,7 +410,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="106"/>
         <CursorPos X="94" Y="115"/>
-        <UsageCount Value="64"/>
+        <UsageCount Value="78"/>
       </Unit40>
       <Unit41>
         <Filename Value="/usr/lib64/lazarus/components/rtticontrols/rttictrls.pas"/>
@@ -416,7 +418,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="49"/>
         <CursorPos X="76" Y="73"/>
-        <UsageCount Value="8"/>
+        <UsageCount Value="7"/>
       </Unit41>
       <Unit42>
         <Filename Value="../../lcl/x3toolset/packages/gametoolset/gtpropertyeditor.pas"/>
@@ -424,7 +426,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="1"/>
         <CursorPos X="25" Y="8"/>
-        <UsageCount Value="7"/>
+        <UsageCount Value="6"/>
       </Unit42>
       <Unit43>
         <Filename Value="/usr/lib64/lazarus/ideintf/propedits.pp"/>
@@ -432,14 +434,14 @@
         <WindowIndex Value="0"/>
         <TopLine Value="1509"/>
         <CursorPos X="56" Y="1539"/>
-        <UsageCount Value="10"/>
+        <UsageCount Value="9"/>
       </Unit43>
       <Unit44>
         <Filename Value="/usr/share/fpcsrc/rtl/inc/mathh.inc"/>
         <WindowIndex Value="0"/>
         <TopLine Value="40"/>
         <CursorPos X="55" Y="66"/>
-        <UsageCount Value="8"/>
+        <UsageCount Value="7"/>
       </Unit44>
       <Unit45>
         <Filename Value="modules/gl/glcamera.pas"/>
@@ -448,7 +450,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="626"/>
         <CursorPos X="13" Y="659"/>
-        <UsageCount Value="54"/>
+        <UsageCount Value="68"/>
       </Unit45>
       <Unit46>
         <Filename Value="modules/geometry/voronoi.pas"/>
@@ -457,27 +459,29 @@
         <WindowIndex Value="0"/>
         <TopLine Value="1"/>
         <CursorPos X="61" Y="7"/>
-        <UsageCount Value="48"/>
+        <UsageCount Value="62"/>
       </Unit46>
       <Unit47>
         <Filename Value="modules/terrain/terraingeometrydynamic.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="TerrainGeometryDynamic"/>
-        <EditorIndex Value="8"/>
+        <EditorIndex Value="12"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="37"/>
-        <CursorPos X="89" Y="72"/>
-        <UsageCount Value="48"/>
+        <TopLine Value="247"/>
+        <CursorPos X="20" Y="236"/>
+        <UsageCount Value="62"/>
         <Loaded Value="True"/>
       </Unit47>
       <Unit48>
         <Filename Value="modules/terrain/sources/terrainsourceperlinnoise.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="TerrainSourcePerlinNoise"/>
+        <EditorIndex Value="13"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="1"/>
-        <CursorPos X="16" Y="149"/>
-        <UsageCount Value="48"/>
+        <TopLine Value="106"/>
+        <CursorPos X="27" Y="62"/>
+        <UsageCount Value="62"/>
+        <Loaded Value="True"/>
       </Unit48>
       <Unit49>
         <Filename Value="../packages/x3toolset/x3toolsetpkg.pas"/>
@@ -485,7 +489,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="1"/>
         <CursorPos X="1" Y="1"/>
-        <UsageCount Value="10"/>
+        <UsageCount Value="9"/>
       </Unit49>
       <Unit50>
         <Filename Value="../packages/gametoolset/gtpropertyeditor.pas"/>
@@ -493,163 +497,194 @@
         <WindowIndex Value="0"/>
         <TopLine Value="1"/>
         <CursorPos X="26" Y="8"/>
-        <UsageCount Value="10"/>
+        <UsageCount Value="9"/>
       </Unit50>
       <Unit51>
         <Filename Value="modules/gl/gloctree.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="GLOctree"/>
-        <EditorIndex Value="3"/>
+        <EditorIndex Value="4"/>
         <WindowIndex Value="0"/>
         <TopLine Value="1"/>
         <CursorPos X="3" Y="11"/>
-        <UsageCount Value="24"/>
+        <UsageCount Value="38"/>
         <Loaded Value="True"/>
       </Unit51>
       <Unit52>
         <Filename Value="modules/gl/glfrustum.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="GLFrustum"/>
-        <EditorIndex Value="7"/>
+        <EditorIndex Value="11"/>
         <WindowIndex Value="0"/>
         <TopLine Value="1"/>
-        <CursorPos X="28" Y="19"/>
-        <UsageCount Value="24"/>
+        <CursorPos X="46" Y="8"/>
+        <UsageCount Value="38"/>
         <Loaded Value="True"/>
       </Unit52>
       <Unit53>
         <Filename Value="modules/gl/globject.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="GLObject"/>
-        <IsVisibleTab Value="True"/>
-        <EditorIndex Value="4"/>
+        <EditorIndex Value="5"/>
         <WindowIndex Value="0"/>
         <TopLine Value="1"/>
-        <CursorPos X="60" Y="25"/>
-        <UsageCount Value="22"/>
+        <CursorPos X="68" Y="31"/>
+        <UsageCount Value="36"/>
         <Loaded Value="True"/>
       </Unit53>
+      <Unit54>
+        <Filename Value="modules/gl/materials/glshadermaterial.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="GLShaderMaterial"/>
+        <EditorIndex Value="8"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="1"/>
+        <CursorPos X="75" Y="25"/>
+        <UsageCount Value="27"/>
+        <Loaded Value="True"/>
+      </Unit54>
+      <Unit55>
+        <Filename Value="modules/gl/glshader.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="GLShader"/>
+        <EditorIndex Value="9"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="62"/>
+        <CursorPos X="17" Y="76"/>
+        <UsageCount Value="27"/>
+        <Loaded Value="True"/>
+      </Unit55>
+      <Unit56>
+        <Filename Value="../packages/gametoolset/gtvfs.pas"/>
+        <UnitName Value="GTVFS"/>
+        <EditorIndex Value="2"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="269"/>
+        <CursorPos X="43" Y="58"/>
+        <UsageCount Value="10"/>
+        <Loaded Value="True"/>
+      </Unit56>
     </Units>
-    <JumpHistory Count="17" HistoryIndex="16">
+    <JumpHistory Count="30" HistoryIndex="29">
       <Position1>
-        <Filename Value="modules/core/corescene.pas"/>
-        <Caret Line="318" Column="37" TopLine="284"/>
+        <Filename Value="../packages/dglsdk/src/dglOpenGL.pas"/>
+        <Caret Line="6832" Column="12" TopLine="6804"/>
       </Position1>
       <Position2>
-        <Filename Value="modules/core/corescene.pas"/>
-        <Caret Line="315" Column="15" TopLine="290"/>
+        <Filename Value="../packages/dglsdk/src/dglOpenGL.pas"/>
+        <Caret Line="6840" Column="12" TopLine="6804"/>
       </Position2>
       <Position3>
-        <Filename Value="modules/core/corescene.pas"/>
-        <Caret Line="322" Column="54" TopLine="296"/>
+        <Filename Value="../packages/dglsdk/src/dglOpenGL.pas"/>
+        <Caret Line="6862" Column="12" TopLine="6834"/>
       </Position3>
       <Position4>
-        <Filename Value="modules/core/corescene.pas"/>
-        <Caret Line="318" Column="80" TopLine="300"/>
+        <Filename Value="../packages/dglsdk/src/dglOpenGL.pas"/>
+        <Caret Line="6863" Column="12" TopLine="6834"/>
       </Position4>
       <Position5>
-        <Filename Value="modules/core/corescene.pas"/>
-        <Caret Line="314" Column="15" TopLine="300"/>
+        <Filename Value="../packages/dglsdk/src/dglOpenGL.pas"/>
+        <Caret Line="7050" Column="12" TopLine="7022"/>
       </Position5>
       <Position6>
-        <Filename Value="modules/core/corescene.pas"/>
-        <Caret Line="317" Column="168" TopLine="271"/>
+        <Filename Value="../packages/dglsdk/src/dglOpenGL.pas"/>
+        <Caret Line="7060" Column="12" TopLine="7022"/>
       </Position6>
       <Position7>
-        <Filename Value="modules/core/corescene.pas"/>
-        <Caret Line="40" Column="112" TopLine="1"/>
+        <Filename Value="../packages/dglsdk/src/dglOpenGL.pas"/>
+        <Caret Line="7166" Column="12" TopLine="7138"/>
       </Position7>
       <Position8>
-        <Filename Value="modules/core/corescene.pas"/>
-        <Caret Line="229" Column="17" TopLine="202"/>
+        <Filename Value="../packages/dglsdk/src/dglOpenGL.pas"/>
+        <Caret Line="7219" Column="12" TopLine="7191"/>
       </Position8>
       <Position9>
-        <Filename Value="modules/core/corescene.pas"/>
-        <Caret Line="248" Column="3" TopLine="220"/>
+        <Filename Value="../packages/dglsdk/src/dglOpenGL.pas"/>
+        <Caret Line="7271" Column="12" TopLine="7243"/>
       </Position9>
       <Position10>
-        <Filename Value="modules/core/corescene.pas"/>
-        <Caret Line="246" Column="30" TopLine="218"/>
+        <Filename Value="../packages/dglsdk/src/dglOpenGL.pas"/>
+        <Caret Line="7314" Column="12" TopLine="7285"/>
       </Position10>
       <Position11>
-        <Filename Value="modules/core/corescene.pas"/>
-        <Caret Line="243" Column="7" TopLine="1"/>
+        <Filename Value="../packages/dglsdk/src/dglOpenGL.pas"/>
+        <Caret Line="326" Column="75" TopLine="301"/>
       </Position11>
       <Position12>
-        <Filename Value="modules/core/corescene.pas"/>
-        <Caret Line="146" Column="41" TopLine="107"/>
+        <Filename Value="../packages/dglsdk/src/dglOpenGL.pas"/>
+        <Caret Line="6407" Column="9" TopLine="6379"/>
       </Position12>
       <Position13>
-        <Filename Value="modules/terrain/terraingeometrydynamic.pas"/>
-        <Caret Line="53" Column="40" TopLine="37"/>
+        <Filename Value="../packages/dglsdk/src/dglOpenGL.pas"/>
+        <Caret Line="6483" Column="9" TopLine="6455"/>
       </Position13>
       <Position14>
-        <Filename Value="modules/gl/globject.pas"/>
-        <Caret Line="13" Column="14" TopLine="1"/>
+        <Filename Value="../packages/dglsdk/src/dglOpenGL.pas"/>
+        <Caret Line="6831" Column="9" TopLine="6803"/>
       </Position14>
       <Position15>
-        <Filename Value="modules/gl/globject.pas"/>
-        <Caret Line="11" Column="10" TopLine="1"/>
+        <Filename Value="../packages/dglsdk/src/dglOpenGL.pas"/>
+        <Caret Line="6841" Column="9" TopLine="6803"/>
       </Position15>
       <Position16>
-        <Filename Value="modules/gl/globject.pas"/>
-        <Caret Line="18" Column="11" TopLine="1"/>
+        <Filename Value="../packages/dglsdk/src/dglOpenGL.pas"/>
+        <Caret Line="7049" Column="9" TopLine="7021"/>
       </Position16>
       <Position17>
-        <Filename Value="modules/gl/globject.pas"/>
-        <Caret Line="20" Column="15" TopLine="1"/>
+        <Filename Value="../packages/dglsdk/src/dglOpenGL.pas"/>
+        <Caret Line="7061" Column="9" TopLine="7021"/>
       </Position17>
       <Position18>
-        <Filename Value="modules/gl/globject.pas"/>
-        <Caret Line="25" Column="72" TopLine="1"/>
+        <Filename Value="../packages/dglsdk/src/dglOpenGL.pas"/>
+        <Caret Line="7167" Column="9" TopLine="7139"/>
       </Position18>
       <Position19>
-        <Filename Value="modules/gl/globject.pas"/>
-        <Caret Line="27" Column="21" TopLine="1"/>
+        <Filename Value="modules/gl/glshader.pas"/>
+        <Caret Line="21" Column="74" TopLine="1"/>
       </Position19>
       <Position20>
-        <Filename Value="modules/gl/globject.pas"/>
-        <Caret Line="28" Column="29" TopLine="5"/>
+        <Filename Value="modules/gl/materials/glshadermaterial.pas"/>
+        <Caret Line="15" Column="17" TopLine="1"/>
       </Position20>
       <Position21>
-        <Filename Value="modules/gl/globject.pas"/>
-        <Caret Line="8" Column="29" TopLine="1"/>
+        <Filename Value="modules/gl/glshader.pas"/>
+        <Caret Line="26" Column="22" TopLine="1"/>
       </Position21>
       <Position22>
-        <Filename Value="modules/gl/globject.pas"/>
-        <Caret Line="73" Column="9" TopLine="20"/>
+        <Filename Value="modules/gl/materials/glshadermaterial.pas"/>
+        <Caret Line="15" Column="17" TopLine="1"/>
       </Position22>
       <Position23>
-        <Filename Value="modules/gl/globject.pas"/>
-        <Caret Line="86" Column="30" TopLine="37"/>
+        <Filename Value="modules/gl/glshader.pas"/>
+        <Caret Line="114" Column="22" TopLine="66"/>
       </Position23>
       <Position24>
-        <Filename Value="modules/gl/globject.pas"/>
-        <Caret Line="39" Column="19" TopLine="11"/>
+        <Filename Value="modules/gl/materials/glshadermaterial.pas"/>
+        <Caret Line="20" Column="45" TopLine="1"/>
       </Position24>
       <Position25>
-        <Filename Value="modules/gl/globject.pas"/>
-        <Caret Line="86" Column="30" TopLine="37"/>
+        <Filename Value="modules/gl/materials/glshadermaterial.pas"/>
+        <Caret Line="12" Column="37" TopLine="1"/>
       </Position25>
       <Position26>
-        <Filename Value="modules/gl/globject.pas"/>
-        <Caret Line="81" Column="35" TopLine="37"/>
+        <Filename Value="modules/gl/materials/glshadermaterial.pas"/>
+        <Caret Line="25" Column="44" TopLine="1"/>
       </Position26>
       <Position27>
-        <Filename Value="modules/gl/globject.pas"/>
-        <Caret Line="86" Column="20" TopLine="37"/>
+        <Filename Value="modules/gl/materials/glshadermaterial.pas"/>
+        <Caret Line="53" Column="18" TopLine="1"/>
       </Position27>
       <Position28>
-        <Filename Value="modules/geometry/geometry.pas"/>
-        <Caret Line="148" Column="33" TopLine="119"/>
+        <Filename Value="modules/gl/materials/glshadermaterial.pas"/>
+        <Caret Line="16" Column="20" TopLine="1"/>
       </Position28>
       <Position29>
-        <Filename Value="modules/gl/globject.pas"/>
-        <Caret Line="103" Column="39" TopLine="51"/>
+        <Filename Value="modules/core/corescene.pas"/>
+        <Caret Line="10" Column="5" TopLine="1"/>
       </Position29>
       <Position30>
-        <Filename Value="modules/gl/globject.pas"/>
-        <Caret Line="40" Column="52" TopLine="12"/>
+        <Filename Value="modules/core/corescene.pas"/>
+        <Caret Line="27" Column="24" TopLine="1"/>
       </Position30>
     </JumpHistory>
   </ProjectOptions>
@@ -660,7 +695,7 @@
     </Target>
     <SearchPaths>
       <IncludeFiles Value="includes"/>
-      <OtherUnitFiles Value="modules/transport;modules/geometry;modules/io;modules/pathfinder;modules/gl;modules/core;modules/transport/geometry;modules/ui;modules/terrain;modules/terrain/sources"/>
+      <OtherUnitFiles Value="modules/transport;modules/geometry;modules/io;modules/pathfinder;modules/gl;modules/core;modules/transport/geometry;modules/ui;modules/terrain;modules/terrain/sources;modules/gl/materials"/>
       <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
     <Parsing>

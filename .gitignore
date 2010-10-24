@@ -5,6 +5,7 @@ heaptrc.txt
 *.o
 *.or
 *.s
+*.ppu
 log.*
 valgrind.*
 tt3d
