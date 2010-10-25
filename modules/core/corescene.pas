@@ -6,8 +6,8 @@ interface
 
 uses
   Classes, SysUtils, uiGL, GLGeometry, Geometry, ioSDL, dglOpenGL, GLHelpers,
-  ioConfig, sdl, TerrainGeometryDynamic, TerrainSourcePerlinNoise, GLCamera,
-  GTVFS;
+  ioConfig, sdl, TerrainGeometryShaded, TerrainSourcePerlinNoise, GLCamera,
+  GTVFS, TerrainSource, GLShaderMaterial, GLShader;
 
 type
 
@@ -39,7 +39,7 @@ type
 
     FTerrain: TTerrain;
 
-    FTerrainMaterial: TGLMaterial;
+    FTerrainMaterial: TGLShaderMaterial;
     FTerrainBuffer: TGLGeometryBuffer;
   protected
     procedure CameraMoved(Sender: TObject);
@@ -76,7 +76,8 @@ begin
   FRotSpeed := Vector2(0.0, 0.0);
   FRotAccel := Vector2(0.0, 0.0);     *)
 
-
+  FVFS := TGTVFS.Create;
+  FVFS.AddMount(TGTMountDirectory.Create(FVFS, ExtractFilePath(ParamStr(0))), fpFileSystem);
 
   FCamera := TGLCameraFreeSmooth.Create;
 
@@ -144,13 +145,18 @@ begin
   o := Vector2(1.0, 1.0);
   WriteLn(FormatVector(Intersection(v1, v2, o)));
 
-  FTerrainBuffer := TGLGeometryBuffer.Create(TGLGeometryFormatP4C4T2N3F.GetNeededVertexSize);
-  FTerrainMaterial := TGLMaterial.Create(FTerrainBuffer, TGLGeometryFormatP4C4T2N3F);
+  FTerrainBuffer := TGLGeometryBuffer.Create(TTerrainFormat.GetNeededVertexSize);
+  FTerrainMaterial := TGLShaderMaterial.Create(FTerrainBuffer, TTerrainFormat);
+  glGetError;
+  FTerrainMaterial.Shader.LoadShader(FVFS.OpenFile('shader/terrain.vs', fmOpenRead), FVFS.OpenFile('shader/terrain.fs', fmOpenRead));
 
-  Src := TTerrainSourcePerlinNoise.Create(129, 129, 5287, 3215, 0.65, 9, 0.025, 0.025);
-  FTerrain := TTerrain.Create(129, 129, Src, FTerrainMaterial);
+  Src := TTerrainSourcePerlinNoise.Create(256, 256, 5297, 3215, 0.5, 9, 0.05, 0.05, 16.0);
+  FTerrain := TTerrain.Create(256, 256, Src, FTerrainMaterial);
+  RaiseLastGLError;
+  FTerrain.Generate;
+  RaiseLastGLError;
 
-  FTerrain.UpdateForFrustum({Vector3(FCamera.Pos.Vec2, FCamera.Zoom)}FCamera.TransformedPos, {Max(64.0 / Max(VLength(FCamera.Velocity) / 10.0 + FCamera.ZoomVelocity / 10.0, 1.0), 2.0)} 512.0, 0.9);
+  //FTerrain.UpdateForFrustum({Vector3(FCamera.Pos.Vec2, FCamera.Zoom)}FCamera.TransformedPos, {Max(64.0 / Max(VLength(FCamera.Velocity) / 10.0 + FCamera.ZoomVelocity / 10.0, 1.0), 2.0)} 512.0, 0.9);
 end;
 
 destructor TTT3DScene.Destroy;
@@ -267,12 +273,12 @@ procedure TTT3DScene.DoRenderBackground;
   I: Integer;
   V: TVector4f;*)
 const
-  mat_specular   : Array[0..3] of GlFloat = (1.0, 1.0, 1.0, 1.0);
-  mat_shininess  : Array[0..0] of GlFloat = (50.0);
-  mat_ambient    : Array[0..3] of GlFloat = (0.4, 0.0, 0.0, 1.0);
-  mat_diffuse    : Array[0..3] of GlFloat = (0.0, 0.8, 0.0, 1.0);
+  mat_specular   : Array[0..3] of GlFloat = (0.0, 0.0, 0.0, 0.0);
+  mat_shininess  : Array[0..0] of GlFloat = (0.0);
+  mat_ambient    : Array[0..3] of GlFloat = (0.15, 0.15, 0.15, 1.0);
+  mat_diffuse    : Array[0..3] of GlFloat = (0.8, 0.8, 0.8, 1.0);
 
-  P: TVector4f = (1.0, 1.0, -1.0, 0.0);
+  P: TVector4f = (-0.75, 0.35, 1.0, 0.0);
   Ambient: TVector4f = (0.15, 0.15, 0.15, 1.0);
   Diffuse: TVector4f = (1.0, 1.0, 1.0, 1.0);
 var
@@ -283,7 +289,7 @@ begin
   glDisable(GL_SCISSOR_TEST);
   glEnable(GL_DEPTH_TEST);
   glDisable(GL_BLEND);
-  glEnable(GL_CULL_FACE);
+  glDisable(GL_CULL_FACE);
 
   (*glTranslatef(0.0, 0.0, FMove.Z);
   glRotatef(FRot.X, 1.0, 0.0, 0.0);
@@ -298,7 +304,7 @@ begin
 
   //glPointSize(2.0);
   //FTerrain.DrawDirect;
-  Pos := Normalize(P);
+  (*Pos := Normalize(P);
   glLightfv(GL_LIGHT0, GL_POSITION, @Pos[0]);
   glLightfv(GL_LIGHT0, GL_AMBIENT, @Ambient[0]);
   glLightfv(GL_LIGHT0, GL_DIFFUSE, @Diffuse[0]);
@@ -306,16 +312,16 @@ begin
   glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR,  @mat_specular[0]);
   glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, @mat_shininess[0]);
   glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT,   @mat_ambient[0]);
-  glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE,   @mat_diffuse[0]);
+  glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE,   @mat_diffuse[0]);*)
 
-  glEnable(GL_LIGHTING);
-  glEnable(GL_LIGHT0);
+  //glEnable(GL_LIGHTING);
+  //glEnable(GL_LIGHT0);
   //glEnable(GL_COLOR_MATERIAL);
-  glEnable(GL_NORMALIZE);
+  //glEnable(GL_NORMALIZE);
 
 
   glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-  FTerrain.DrawDirect;
+  FTerrain.Draw;
   glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
   glColor4f(1, 1, 1, 1);
   glDisable(GL_LIGHTING);
@@ -350,6 +356,14 @@ begin
   glDisable(GL_DEPTH_TEST);
   glEnable(GL_SCISSOR_TEST);
   glDisable(GL_CULL_FACE);
+
+  (*glBegin(GL_QUADS);
+    glVertex2f(0, 0, 0, 0);
+    glVertex2f(0, 0, 128, 128);
+    glVertex2f(0, 0, 128, 128);
+    glVertex2f(0, 0, 128, 128);
+  glEnd;*)
+
   glEnable(GL_BLEND);
 
   DoRenderBackgroundGeometry;

@@ -5,7 +5,7 @@ unit GLShader;
 interface
 
 uses
-  Classes, SysUtils, dglOpenGL, ioLog;
+  Classes, SysUtils, dglOpenGL, ioLog, GLGeometry;
 
 type
 
@@ -19,6 +19,8 @@ type
     FProgramObject: TGLUint;
   protected
     function CompileShader(Kind: TGLenum; const Source: String): GLHandle;
+  public
+    property ProgramObject: TGLuint read FProgramObject;
   public
     procedure Bind;
     procedure LoadShader(const Vertex, Fragment: String);
@@ -68,6 +70,7 @@ end;
 procedure TGLShader.Bind;
 begin
   glUseProgram(FProgramObject);
+  RaiseLastGLError;
 end;
 
 procedure TGLShader.LoadShader(const Vertex, Fragment: String);
@@ -75,9 +78,9 @@ var
   VertexObj, FragmentObj: TGLUint;
   Error: String;
 begin
-  if FProgramObject <> -1 then
-    glDeleteProgram(FProgramObject);
+  RaiseLastGLError;
   FProgramObject := glCreateProgram();
+  RaiseLastGLError;
   try
     VertexObj := CompileShader(GL_VERTEX_SHADER, Vertex);
     FragmentObj := CompileShader(GL_FRAGMENT_SHADER, Fragment);
@@ -92,14 +95,18 @@ begin
       glDeleteShader(VertexObj);
       glDeleteShader(FragmentObj);
       // raise Exception.CreateFmt('Linker error: %s', [Error]);
+      GeneralLog.Log(lmetError, 'Shader linking failed.', 'TglShader.LoadShader');
       glDeleteProgram(FProgramObject);
       FProgramObject := -1;
       Exit;
     end;
     glDeleteShader(VertexObj);
+    RaiseLastGLError;
     glDeleteShader(FragmentObj);
+    RaiseLastGLError;
   except
     glDeleteProgram(FProgramObject);
+    RaiseLastGLError;
     raise;
   end;
 end;
@@ -111,7 +118,7 @@ begin
   SetLength(VS, Vertex.Size);
   Vertex.Read(VS[1], Length(VS));
   SetLength(FS, Fragment.Size);
-  Vertex.Read(FS[1], Length(FS));
+  Fragment.Read(FS[1], Length(FS));
   LoadShader(VS, FS);
 end;
 

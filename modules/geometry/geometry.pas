@@ -120,13 +120,16 @@ operator = (A, B: TVector4): Boolean; inline;
 
 function Normalize(const Vec2: TVector2): TVector2; inline;
 function Normalize(const Vec3: TVector3): TVector3; inline;
+function Normalize(const Vec3f: TVector3f): TVector3f; inline;
 function Normalize(const Vec4: TVector4): TVector4; inline;
 function NormalizeInPlace(var Vec2: TVector2): TVectorFloat; inline;
 function NormalizeInPlace(var Vec3: TVector3): TVectorFloat; inline;
+function NormalizeInPlace(var Vec3f: TVector3f): TVectorFloat; inline;
 function NormalizeInPlace(var Vec4: TVector4): TVectorFloat; inline;
 
 function VLength(Vec2: TVector2): TVectorFloat; inline;
 function VLength(Vec3: TVector3): TVectorFloat; inline;
+function VLength(Vec3f: TVector3f): TVectorFloat; inline;
 function VLength(Vec4: TVector4): TVectorFloat; inline;
 
 function BLength(Bezier: TCubicBezier3; Steps: Integer = 1000): TVectorFloat;
@@ -142,6 +145,7 @@ function Vector2(X: TVectorFloat; Y: TVectorFloat): TVector2; inline;
 function Vector3(X: TVectorFloat; Y: TVectorFloat; Z: TVectorFloat): TVector3; inline;
 function Vector3(Vec2: TVector2; Z: TVectorFloat): TVector3; inline;
 function Vector3f(Vec3: TVector3): TVector3f; inline;
+function Vector3(Vec3: TVector3f): TVector3; inline;
 function Vector3f(X, Y, Z: Single): TVector3f; inline;
 function Vector4(Vec2: TVector2; Z, W: TVectorFloat): TVector4; inline;
 function Vector4(Vec3: TVector3; W: TVectorFloat): TVector4; inline;
@@ -505,6 +509,12 @@ begin
   NormalizeInPlace(Result);
 end;
 
+function Normalize(const Vec3f: TVector3f): TVector3f;
+begin
+  Result := Vec3f;
+  NormalizeInPlace(Result);
+end;
+
 function Normalize(const Vec4: TVector4): TVector4;
 begin
   Result := Vec4;
@@ -526,6 +536,14 @@ begin
   Vec3.Z := Vec3.Z / Result;
 end;
 
+function NormalizeInPlace(var Vec3f: TVector3f): TVectorFloat;
+begin
+  Result := VLength(Vec3f);
+  Vec3f[0] := Vec3f[0] / Result;
+  Vec3f[1] := Vec3f[1] / Result;
+  Vec3f[2] := Vec3f[2] / Result;
+end;
+
 function NormalizeInPlace(var Vec4: TVector4): TVectorFloat;
 begin
   Result := VLength(Vec4);
@@ -543,6 +561,11 @@ end;
 function VLength(Vec3: TVector3): TVectorFloat;
 begin
   Result := Sqrt(Sqr(Vec3.X) + Sqr(Vec3.Y) + Sqr(Vec3.Z));
+end;
+
+function VLength(Vec3f: TVector3f): TVectorFloat;
+begin
+  Result := Sqrt(Sqr(Vec3f[0]) + Sqr(Vec3f[1]) + Sqr(Vec3f[2]));
 end;
 
 function VLength(Vec4: TVector4): TVectorFloat;
@@ -687,6 +710,13 @@ begin
   Result[0] := Vec3.X;
   Result[1] := Vec3.Y;
   Result[2] := Vec3.Z;
+end;
+
+function Vector3(Vec3: TVector3f): TVector3;
+begin
+  Result.X := Vec3[0];
+  Result.Y := Vec3[1];
+  Result.Z := Vec3[2];
 end;
 
 function Vector3f(X, Y, Z: Single): TVector3f; inline;

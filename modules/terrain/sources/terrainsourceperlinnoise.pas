@@ -5,7 +5,7 @@ unit TerrainSourcePerlinNoise;
 interface
 
 uses
-  Classes, SysUtils, TerrainGeometryDynamic, Geometry;
+  Classes, SysUtils, TerrainSource, Geometry;
 
 type
 
@@ -14,11 +14,11 @@ type
   TTerrainSourcePerlinNoise = class (TTerrainSource)
   public
     constructor Create(const AWidth, AHeight, PNXOffset, PNYOffset: Integer;
-      const Persistence: Double; const Octaves: Cardinal; AXScale, AYScale: Double);
+      const Persistence: Double; const Octaves: Cardinal; AXScale, AYScale, AZScale: Double);
   private
     FWidth, FHeight: Integer;
     FPNXOffset, FPNYOffset: Double;
-    FXScale, FYScale: Double;
+    FXScale, FYScale, FZScale: Double;
     FPersistence: Double;
     FOctaves: Cardinal;
   protected
@@ -41,7 +41,7 @@ implementation
 
 constructor TTerrainSourcePerlinNoise.Create(const AWidth, AHeight, PNXOffset,
   PNYOffset: Integer; const Persistence: Double; const Octaves: Cardinal;
-  AXScale, AYScale: Double);
+  AXScale, AYScale, AZScale: Double);
 begin
   FWidth := AWidth;
   FHeight := AHeight;
@@ -51,6 +51,7 @@ begin
   FOctaves := Octaves;
   FXScale := AXScale;
   FYScale := AYScale;
+  FZScale := AZScale;
 end;
 
 class function TTerrainSourcePerlinNoise.InterpolateCos(const A,
@@ -58,7 +59,7 @@ class function TTerrainSourcePerlinNoise.InterpolateCos(const A,
 var
   FC: TVectorFloat;
 begin
-  FC := Cos(F * Pi * 0.5);
+  FC := Sqr(Cos(F * Pi * 0.5));
   Exit(FC * A + (1.0 - FC) * B);
 end;
 
@@ -154,7 +155,7 @@ begin
     XF := AX * FXScale + FPNXOffset;
     for X := AX to (AX + AW) - 1 do
     begin
-      TargetBuffer[AbsX + AbsY * AW] := PerlinNoise(Vector2(XF, YF), FPersistence, FOctaves);
+      TargetBuffer[AbsX + AbsY * AW] := PerlinNoise(Vector2(XF, YF), FPersistence, FOctaves) * FZScale;
       XF += FXScale;
       Inc(AbsX);
     end;

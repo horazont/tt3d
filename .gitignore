@@ -9,3 +9,5 @@ heaptrc.txt
 log.*
 valgrind.*
 tt3d
+*.ico
+*.res

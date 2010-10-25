@@ -5,27 +5,13 @@ unit TerrainGeometryDynamic;
 interface
 
 uses
-  Classes, SysUtils, Geometry, GLGeometry, Math, dglOpenGL;
-
-const
-  TERRAIN_GEOMETRY_CHUNK_SIZE = 64;
-  TERRAIN_GEOMETRY_BLOCK_SIZE = 64;
+  Classes, SysUtils, Geometry, GLGeometry, Math, dglOpenGL, TerrainSource;
 
 type
-  ETerrainError = class (Exception);
 
   TQuadTreeNode = packed record
     Subdivide: Boolean;
     D2Value: Byte;
-  end;
-
-  { TTerrainSource }
-
-  TTerrainSource = class (TObject)
-  public
-    function Height: Integer; virtual; abstract;
-    procedure GetData(const X, Y, W, H: Integer; const TargetBuffer: PSingle); virtual; abstract;
-    function Width: Integer; virtual; abstract;
   end;
 
   TTerrain = class (TObject)
@@ -66,7 +52,7 @@ begin
     raise ETerrainError.CreateFmt('Invalid terrain size: %d×%d, scales are required to be equal and multiples of %d.', [FWidth, FHeight, TERRAIN_GEOMETRY_BLOCK_SIZE]);
 
   FMaterial := AMaterial;
-  if not (FMaterial.Format is TGLGeometryFormatP4C4) then
+  if not (FMaterial.Format is TGLGeometryFormatP4C4T2N3F) then
     raise ETerrainError.Create('Format must have at least P4C4T2N3F.');
 
   SetLength(FHeightmap, FWidth * FHeight);
@@ -223,8 +209,8 @@ const
       xEnd := X + Size * Vertices[V2][0];
       yEnd := Y + Size * Vertices[V2][1];
 
-      vStart := Vector3f(xStart, yStart, GetHeight(xStart, yStart) * 4.0);
-      vEnd := Vector3f(xEnd, yEnd, GetHeight(xEnd, yEnd) * 4.0);
+      vStart := Vector3f(xStart, yStart, GetHeight(xStart, yStart) * 16.0);
+      vEnd := Vector3f(xEnd, yEnd, GetHeight(xEnd, yEnd) * 16.0);
 
       (*WriteLn(FormatVector(MidVertex));
       WriteLn(FormatVector(vStart));
@@ -243,7 +229,7 @@ const
       Exit;
 
     HSize := Size div 2;
-    MidVertex := Vector3f(X, Y, GetHeight(X, Y) * 4.0);
+    MidVertex := Vector3f(X, Y, GetHeight(X, Y) * 16.0);
 
     if Size > 1 then
     begin
@@ -322,9 +308,12 @@ begin
         //C := (TriangleStorage[I][L][2] + 4.0) * 0.125;
         //Color[J+L] := Vector4f(C, C, C, 0.1);
 
-        Color[J+L] := Vector4((NormalStorage[I][L] + 1.0) * 0.5, 1.0);
+        //Color[J+L] := Vector4((NormalStorage[I][L] + 1.0) * 0.5, 1.0);
+
         //Color[J+L] := Vector4(0.75, 0.75, 0.75, 1.0);
 
+        C := (TriangleStorage[I][L][2] + 16.0) * 0.05475;
+        Color[J+L] := Vector4f(C * 0.35, C, arccos(NormalStorage[I][L] * V_EUP), 1.0);
 
         Normal[J+L] := NormalStorage[I][L];
       end;
