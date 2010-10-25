@@ -15,8 +15,6 @@ uses
   TerrainGeometryDynamic, TerrainSourcePerlinNoise, GLOctree, GLFrustum,
 GLObject, GLShaderMaterial, GLShader;
 
-{$R *.res}
-
 var
   App: TTT3D;
 {$ifdef UseHeapTrc}
