@@ -459,9 +459,9 @@ begin
   Mat := TranslationMatrix(Vector3(0, 0, FZoom)) * RotationMatrixX(FRotation.X) * RotationMatrixZ(FRotation.Y) * TranslationMatrix(-FPos);
   FModelView := Mat;
   FModelViewHiRes := Mat;
-  FRight := Normalize(Vector3(Mat[0], Mat[1], Mat[2]));
-  FUp := Normalize(Vector3(Mat[4], Mat[5], Mat[6]));
-  FFront := Normalize(Vector3(Mat[8], Mat[9], Mat[10]));
+  FRight := Normalize(Vector3(Mat[0], Mat[4], Mat[8]));
+  FUp := Normalize(Vector3(Mat[1], Mat[5], Mat[9]));
+  FFront := Normalize(Vector3(Mat[2], Mat[6], Mat[10]));
   DeinvalidateModelView;
 end;
 

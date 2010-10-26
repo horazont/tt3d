@@ -158,7 +158,8 @@ begin
   ReadExtensions;
   GeneralLog.Log(lmetInfo, 'Extensions read.', 'TTT3D.InitDGL');
 
-  glClearColor(0.5, 0.5, 0.5, 1.0);
+  glClearColor(0.35, 0.5, 0.75, 1.0);
+  //glClearColor(0.5, 0.5, 0.5, 1.0);
   glClearDepth(1.0);
   glDisable(GL_CULL_FACE);
   glDepthFunc(GL_LEQUAL);

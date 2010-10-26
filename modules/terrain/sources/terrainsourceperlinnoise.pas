@@ -14,11 +14,11 @@ type
   TTerrainSourcePerlinNoise = class (TTerrainSource)
   public
     constructor Create(const AWidth, AHeight, PNXOffset, PNYOffset: Integer;
-      const Persistence: Double; const Octaves: Cardinal; AXScale, AYScale, AZScale: Double);
+      const Persistence: Double; const Octaves: Cardinal; AXScale, AYScale, AZScale, AZOffset: Double);
   private
     FWidth, FHeight: Integer;
     FPNXOffset, FPNYOffset: Double;
-    FXScale, FYScale, FZScale: Double;
+    FXScale, FYScale, FZScale, FZOffset: Double;
     FPersistence: Double;
     FOctaves: Cardinal;
   protected
@@ -41,7 +41,7 @@ implementation
 
 constructor TTerrainSourcePerlinNoise.Create(const AWidth, AHeight, PNXOffset,
   PNYOffset: Integer; const Persistence: Double; const Octaves: Cardinal;
-  AXScale, AYScale, AZScale: Double);
+  AXScale, AYScale, AZScale, AZOffset: Double);
 begin
   FWidth := AWidth;
   FHeight := AHeight;
@@ -52,6 +52,7 @@ begin
   FXScale := AXScale;
   FYScale := AYScale;
   FZScale := AZScale;
+  FZOffset := AZOffset;
 end;
 
 class function TTerrainSourcePerlinNoise.InterpolateCos(const A,
@@ -155,7 +156,7 @@ begin
     XF := AX * FXScale + FPNXOffset;
     for X := AX to (AX + AW) - 1 do
     begin
-      TargetBuffer[AbsX + AbsY * AW] := PerlinNoise(Vector2(XF, YF), FPersistence, FOctaves) * FZScale;
+      TargetBuffer[AbsX + AbsY * AW] := PerlinNoise(Vector2(XF, YF), FPersistence, FOctaves) * FZScale + FZOffset;
       XF += FXScale;
       Inc(AbsX);
     end;

@@ -28,6 +28,8 @@ begin
   SetHeapTraceOutput(HeapTrcFile);
   {$endif}
 
+  Randomize;
+
   App := TTT3D.Create;
   try
     App.RunApp;
