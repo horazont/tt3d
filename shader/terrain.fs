@@ -24,11 +24,13 @@ void main()
   vec3 tang = normalize(tangent);
   vec3 bitang = cross(norm, tang);
   
-  float mapNoise = texture2D(noise, vec2(untransformed * 0.0317)).r * 0.05 - 0.025;
+  float mapNoise = (
+      texture2D(noise, vec2(untransformed * 0.0327)).r * 0.5
+    + texture2D(noise, vec2(untransformed * 0.01)).r * 0.2) * 0.08 + 0.04;
     
-  float heightcoord = ((untransformed.z - waterLine) / (snowLine - waterLine)) * 4.0 / 3.0 - 0.25;
+  float heightcoord = ((untransformed.z - waterLine) / (snowLine - waterLine)) * 0.6 + 0.15;
   
-  vec4 color = texture2D(colorMap, vec2(heightcoord, 1.0) + mapNoise);
+  vec4 color = texture2D(colorMap, vec2(heightcoord, 1.0));
   
   mat3 normalSpace = mat3(tang, bitang, norm);
   vec3 mapnorm = normalSpace * normalize(texture2D(normalDetailMap, vec2(untransformed) * 0.3).rgb * 2.0 - 1.0);

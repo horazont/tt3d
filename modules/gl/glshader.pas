@@ -23,6 +23,7 @@ type
     property ProgramObject: TGLuint read FProgramObject;
   public
     procedure Bind;
+    procedure Clear;
     procedure LoadShader(const Vertex, Fragment: String);
     procedure LoadShader(const Vertex, Fragment: TStream);
     procedure Unbind;
@@ -34,13 +35,12 @@ implementation
 
 constructor TGLShader.Create;
 begin
-  FProgramObject := -1;
+  FProgramObject := 0;
 end;
 
 destructor TGLShader.Destroy;
 begin
-  if FProgramObject <> 0 then
-    glDeleteProgram(FProgramObject);
+  Clear;
   inherited Destroy;
 end;
 
@@ -69,8 +69,17 @@ end;
 
 procedure TGLShader.Bind;
 begin
+  if FProgramObject = 0 then
+    Exit;
   glUseProgram(FProgramObject);
   RaiseLastGLError;
+end;
+
+procedure TGLShader.Clear;
+begin
+  if FProgramObject = 0 then
+    glDeleteProgram(FProgramObject);
+  FProgramObject := 0;
 end;
 
 procedure TGLShader.LoadShader(const Vertex, Fragment: String);
@@ -78,6 +87,7 @@ var
   VertexObj, FragmentObj: TGLUint;
   Error: String;
 begin
+  Clear;
   RaiseLastGLError;
   FProgramObject := glCreateProgram();
   RaiseLastGLError;

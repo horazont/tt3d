@@ -701,9 +701,9 @@ begin
   if FRotation.Y < 0.0 then
     FRotation.Y += Pi2;
 
-  if FZoom >= -4.3 then
+  if FZoom >= -1.3 then
   begin
-    FZoom := -4.3;
+    FZoom := -1.3;
     StopZoom(True);
     InvalidateModelView;
   end;

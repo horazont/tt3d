@@ -206,8 +206,8 @@ begin
   glUniform1i(glGetUniformLocation(FMaterial.Shader.ProgramObject, 'tangentMap'), 2);
   glUniform1i(glGetUniformLocation(FMaterial.Shader.ProgramObject, 'colorMap'), 3);
   glUniform1i(glGetUniformLocation(FMaterial.Shader.ProgramObject, 'normalDetailMap'), 4);
-  glUniform1f(glGetUniformLocation(FMaterial.Shader.ProgramObject, 'waterLine'), -10.0);
-  glUniform1f(glGetUniformLocation(FMaterial.Shader.ProgramObject, 'snowLine'), 5.0);
+  glUniform1f(glGetUniformLocation(FMaterial.Shader.ProgramObject, 'waterLine'), -5.0);
+  glUniform1f(glGetUniformLocation(FMaterial.Shader.ProgramObject, 'snowLine'), 3.0);
   glUniform3fv(glGetUniformLocation(FMaterial.Shader.ProgramObject, 'camPos'), 1, @Cam3f[0]);
   glUniform2f(LocWidth, FWidth, FHeight);
   for Y := 0 to H - 1 do
@@ -239,13 +239,6 @@ end;
 
 procedure TTerrain.Generate;
 
-{  ->
-  0  1  2
- ∨ 01 45
-  3<-4  5
-   23 67
-  6  7  8
-}
 var
   NoiseBuffer: PSingle;
   NormalBuffer, TangentBuffer: PVector4f;
@@ -439,151 +432,6 @@ begin
       end;
     end;
 
-    {X := 0;
-    Y := 0;
-    I := 0;
-    J := I;
-    Vertices[4] := Vector3f(X, Y, FHeightfield[J]);
-    Vertices[5] := Vector3f(X+1, Y, FHeightfield[J+1]);
-    J += FWidth;
-    Vertices[7] := Vector3f(X, Y+1, FHeightfield[J]);
-    Vertices[8] := Vector3f(X+1, Y+1, FHeightfield[J+1]);
-
-    FaceNormals[6] := Normalize((Vertices[5] - Vertices[4]) ** (Vertices[7] - Vertices[4]));
-    FaceNormals[7] := Normalize((Vertices[7] - Vertices[8]) ** (Vertices[5] - Vertices[8]));
-
-    NormalBuffer[0] := Vector4f((FaceNormals[6] + FaceNormals[7]) * 0.5, FHeightfield[I]);
-    TangentBuffer[0] := Vector4f(Normalize(Vertices[5] - Vertices[4]), 1.0);
-
-    I := 1;
-    for X := 1 to FWidth - 2 do
-    begin
-      J := I;
-      Vertices[3] := Vector3f(X-1, Y, FHeightfield[J-1]);
-      Vertices[4] := Vector3f(X, Y, FHeightfield[J]);
-      Vertices[5] := Vector3f(X+1, Y, FHeightfield[J+1]);
-      J += FWidth;
-      Vertices[6] := Vector3f(X-1, Y + 1, FHeightfield[J-1]);
-      Vertices[7] := Vector3f(X, Y + 1, FHeightfield[J]);
-      Vertices[8] := Vector3f(X+1, Y + 1, FHeightfield[J+1]);
-
-      FaceNormals[2] := Normalize((Vertices[4] - Vertices[3]) ** (Vertices[6] - Vertices[3]));
-      FaceNormals[3] := Normalize((Vertices[6] - Vertices[7]) ** (Vertices[4] - Vertices[7]));
-
-      FaceNormals[6] := Normalize((Vertices[5] - Vertices[4]) ** (Vertices[7] - Vertices[4]));
-      FaceNormals[7] := Normalize((Vertices[7] - Vertices[8]) ** (Vertices[5] - Vertices[8]));
-
-      NormalBuffer[I] := Vector4f((FaceNormals[2] + FaceNormals[3] + FaceNormals[6] + FaceNormals[7]) * 0.25, FHeightfield[I]);
-      TangentBuffer[I] := Vector4f(Normalize(Vertices[5] - Vertices[4]), 1.0);
-
-      Inc(I);
-    end;
-
-    Y := FHeight - 1;
-    I := FWidth * (FHeight-2) + 1;
-    for X := 1 to FWidth - 2 do
-    begin
-      J := I - FWidth;
-      Vertices[0] := Vector3f(X-1, Y - 1, FHeightfield[J-1]);
-      Vertices[1] := Vector3f(X, Y - 1, FHeightfield[J]);
-      Vertices[2] := Vector3f(X+1, Y - 1, FHeightfield[J+1]);
-      J += FWidth;
-      Vertices[3] := Vector3f(X-1, Y, FHeightfield[J-1]);
-      Vertices[4] := Vector3f(X, Y, FHeightfield[J]);
-      Vertices[5] := Vector3f(X+1, Y, FHeightfield[J+1]);
-
-      FaceNormals[0] := Normalize((Vertices[1] - Vertices[0]) ** (Vertices[3] - Vertices[0]));
-      FaceNormals[1] := Normalize((Vertices[3] - Vertices[4]) ** (Vertices[1] - Vertices[4]));
-
-      FaceNormals[4] := Normalize((Vertices[2] - Vertices[1]) ** (Vertices[4] - Vertices[1]));
-      FaceNormals[5] := Normalize((Vertices[4] - Vertices[5]) ** (Vertices[2] - Vertices[5]));
-
-      NormalBuffer[I] := Vector4f((FaceNormals[0] + FaceNormals[1] + FaceNormals[4] + FaceNormals[5]) * 0.25, FHeightfield[I] );
-      TangentBuffer[I] := Vector4f(Normalize(Vertices[5] - Vertices[4]), 1.0);
-
-      Inc(I);
-    end;
-
-    I := FWidth;
-    for Y := 1 to FHeight - 2 do
-    begin
-
-      X := 0;
-
-      J := I - FWidth;
-      Vertices[1] := Vector3f(X, Y - 1, FHeightfield[J]);
-      Vertices[2] := Vector3f(X+1, Y - 1, FHeightfield[J+1]);
-      J += FWidth;
-      Vertices[4] := Vector3f(X, Y, FHeightfield[J]);
-      Vertices[5] := Vector3f(X+1, Y, FHeightfield[J+1]);
-      J += FWidth;
-      Vertices[7] := Vector3f(X, Y + 1, FHeightfield[J]);
-      Vertices[8] := Vector3f(X+1, Y + 1, FHeightfield[J+1]);
-
-      FaceNormals[4] := Normalize((Vertices[2] - Vertices[1]) ** (Vertices[4] - Vertices[1]));
-      FaceNormals[5] := Normalize((Vertices[4] - Vertices[5]) ** (Vertices[2] - Vertices[5]));
-
-      FaceNormals[6] := Normalize((Vertices[5] - Vertices[4]) ** (Vertices[7] - Vertices[4]));
-      FaceNormals[7] := Normalize((Vertices[7] - Vertices[8]) ** (Vertices[5] - Vertices[8]));
-
-      NormalBuffer[I] := Vector4f((FaceNormals[4] + FaceNormals[5] + FaceNormals[6] + FaceNormals[7]) * 0.25, FHeightfield[I]);
-      TangentBuffer[I] := Vector4f(Normalize(Vertices[5] - Vertices[4]), 1.0);
-
-      for X := 1 to FWidth - 2 do
-      begin
-        J := I - FWidth;
-        Vertices[0] := Vector3f(X-1, Y - 1, FHeightfield[J-1]);
-        Vertices[1] := Vector3f(X, Y - 1, FHeightfield[J]);
-        Vertices[2] := Vector3f(X+1, Y - 1, FHeightfield[J+1]);
-        J += FWidth;
-        Vertices[3] := Vector3f(X-1, Y, FHeightfield[J-1]);
-        Vertices[4] := Vector3f(X, Y, FHeightfield[J]);
-        Vertices[5] := Vector3f(X+1, Y, FHeightfield[J+1]);
-        J += FWidth;
-        Vertices[6] := Vector3f(X-1, Y + 1, FHeightfield[J-1]);
-        Vertices[7] := Vector3f(X, Y + 1, FHeightfield[J]);
-        Vertices[8] := Vector3f(X+1, Y + 1, FHeightfield[J+1]);
-
-        FaceNormals[0] := Normalize((Vertices[1] - Vertices[0]) ** (Vertices[3] - Vertices[0]));
-        FaceNormals[1] := Normalize((Vertices[3] - Vertices[4]) ** (Vertices[1] - Vertices[4]));
-
-        FaceNormals[2] := Normalize((Vertices[4] - Vertices[3]) ** (Vertices[6] - Vertices[3]));
-        FaceNormals[3] := Normalize((Vertices[6] - Vertices[7]) ** (Vertices[4] - Vertices[7]));
-
-        FaceNormals[4] := Normalize((Vertices[2] - Vertices[1]) ** (Vertices[4] - Vertices[1]));
-        FaceNormals[5] := Normalize((Vertices[4] - Vertices[5]) ** (Vertices[2] - Vertices[5]));
-
-        FaceNormals[6] := Normalize((Vertices[5] - Vertices[4]) ** (Vertices[7] - Vertices[4]));
-        FaceNormals[7] := Normalize((Vertices[7] - Vertices[8]) ** (Vertices[5] - Vertices[8]));
-
-        NormalBuffer[I] := Vector4f((FaceNormals[0] + FaceNormals[1] + FaceNormals[2] + FaceNormals[3] + FaceNormals[4] + FaceNormals[5] + FaceNormals[6] + FaceNormals[7]) * 0.125, FHeightfield[I] * 10);
-        TangentBuffer[I] := Vector4f(Normalize(Vertices[5] - Vertices[4]), 1.0);
-        Inc(I);
-      end;
-
-      X := FWidth - 1;
-
-      J := I - FWidth;
-      Vertices[1] := Vector3f(X-1, Y - 1, FHeightfield[J-1]);
-      Vertices[2] := Vector3f(X, Y - 1, FHeightfield[J]);
-      J += FWidth;
-      Vertices[4] := Vector3f(X-1, Y, FHeightfield[J-1]);
-      Vertices[5] := Vector3f(X, Y, FHeightfield[J]);
-      J += FWidth;
-      Vertices[7] := Vector3f(X-1, Y + 1, FHeightfield[J-1]);
-      Vertices[8] := Vector3f(X, Y + 1, FHeightfield[J]);
-
-      FaceNormals[4] := Normalize((Vertices[4] - Vertices[1]) ** (Vertices[2] - Vertices[1]));
-      FaceNormals[5] := Normalize((Vertices[2] - Vertices[5]) ** (Vertices[4] - Vertices[5]));
-
-      FaceNormals[6] := Normalize((Vertices[7] - Vertices[4]) ** (Vertices[5] - Vertices[4]));
-      FaceNormals[7] := Normalize((Vertices[5] - Vertices[8]) ** (Vertices[7] - Vertices[8]));
-
-      NormalBuffer[I] := Vector4f((FaceNormals[4] + FaceNormals[5] + FaceNormals[6] + FaceNormals[7]) * 0.25, FHeightfield[I]);
-      TangentBuffer[I] := Vector4f(Normalize(Vertices[5] - Vertices[4]), 1.0);
-
-    end;                            }
-
     glBindTexture(GL_TEXTURE_2D, FNormalMap);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -606,19 +454,19 @@ begin
     FreeMem(TangentBuffer);
   end;
 
-  FTerrainSection := TGLGeometryQuadsForTris.Create(FMaterial.GeometryBuffer, FMaterial.Format, SHADED_TERRAIN_BLOCK_SIZE*SHADED_TERRAIN_BLOCK_SIZE, FMaterial.StaticIndexBuffer);
+  FTerrainSection := TGLGeometryTerrainSectionForTris.Create(FMaterial.GeometryBuffer, FMaterial.Format, SHADED_TERRAIN_BLOCK_SIZE+1, SHADED_TERRAIN_BLOCK_SIZE+1, FMaterial.StaticIndexBuffer);
   with FTerrainSection.Format as TTerrainFormat do
   begin
     UseMap(FTerrainSection.Map);
     I := 0;
-    for Y := 0 to SHADED_TERRAIN_BLOCK_SIZE-1 do
-      for X := 0 to SHADED_TERRAIN_BLOCK_SIZE-1 do
+    for Y := 0 to SHADED_TERRAIN_BLOCK_SIZE do
+      for X := 0 to SHADED_TERRAIN_BLOCK_SIZE do
       begin
         Position[I]   := Vector2(X,   Y);
-        Position[I+1] := Vector2(X+1, Y);
+        {Position[I+1] := Vector2(X+1, Y);
         Position[I+2] := Vector2(X+1, Y+1);
-        Position[I+3] := Vector2(X,   Y+1);
-        Inc(I, 4);
+        Position[I+3] := Vector2(X,   Y+1);}
+        Inc(I, 1);
       end;
   end;
 end;

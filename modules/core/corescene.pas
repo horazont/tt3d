@@ -7,7 +7,7 @@ interface
 uses
   Classes, SysUtils, uiGL, GLGeometry, Geometry, ioSDL, dglOpenGL, GLHelpers,
   ioConfig, sdl, TerrainGeometryShaded, TerrainSourcePerlinNoise, GLCamera,
-  GTVFS, TerrainSource, GLShaderMaterial, GLShader, glBitmap;
+  GTVFS, TerrainSource, GLShaderMaterial, GLShader, glBitmap, TerrainWater;
 
 type
 
@@ -41,6 +41,9 @@ type
 
     FTerrainMaterial: TTerrainMaterial;
     FTerrainBuffer: TGLGeometryBuffer;
+
+    FWaterMaterial: TTerrainWaterMaterial;
+    FWaterPlane: TTerrainWater;
   protected
     procedure CameraMoved(Sender: TObject);
     procedure DoAbsMetricsChanged; override;
@@ -51,6 +54,8 @@ type
     procedure DoMouseMotion(Motion: TsdlMouseMotionEventData); override;
     procedure DoUpdate(const ATimeInterval: Double); override;
     procedure DoRenderBackground; override;
+    procedure LoadOneShader(Shader: TGLShader; const VSFile, FSFile: String);
+    procedure LoadShader;
   end;
 
 implementation
@@ -148,17 +153,29 @@ begin
   FTerrainBuffer := TGLGeometryBuffer.Create(TTerrainFormat.GetNeededVertexSize);
   FTerrainMaterial := TTerrainMaterial.Create(FTerrainBuffer, TTerrainFormat);
   FTerrainMaterial.ColorMap := TglBitmap2D.Create(FVFS.OpenFile('textures/terrain/temperate.png'));
+  FTerrainMaterial.ColorMap.MipMap := mmNone;
+  FTerrainMaterial.ColorMap.SetFilter(GL_LINEAR, GL_LINEAR);
   FTerrainMaterial.ColorMap.GenTexture();
+  {FTerrainMaterial.ColorMap.MipMap := mmMipmap;
+  FTerrainMaterial.ColorMap.SetFilter(GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR);}
   FTerrainMaterial.NormalMap := TglBitmap2D.Create(FVFS.OpenFile('textures/terrain/normalmap.png'));
+  {FTerrainMaterial.NormalMap.SetWrap(GL_REPEAT, GL_REPEAT);
+  FTerrainMaterial.NormalMap.MipMap := mmMipmap;
+  FTerrainMaterial.NormalMap.SetFilter(GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR);}
   FTerrainMaterial.NormalMap.GenTexture();
   FTerrainMaterial.NormalMap.SetWrap(GL_REPEAT, GL_REPEAT);
-  FTerrainMaterial.NormalMap.MipMap := mmMipmap;
-  FTerrainMaterial.NormalMap.SetFilter(GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR);
+  {FTerrainMaterial.NormalMap.MipMap := mmMipmap;
+  FTerrainMaterial.NormalMap.SetFilter(GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR);}
   glGetError;
-  FTerrainMaterial.Shader.LoadShader(FVFS.OpenFile('shader/terrain.vs', fmOpenRead), FVFS.OpenFile('shader/terrain.fs', fmOpenRead));
 
-  Src := TTerrainSourcePerlinNoise.Create(640, 640, 5297, 3215, 0.50, 9, 0.05, 0.05, 12.0, -2.0);
-  FTerrain := TTerrain.Create(640, 640, Src, FTerrainMaterial);
+  FWaterMaterial := TTerrainWaterMaterial.Create(FTerrainBuffer, TTerrainFormat);
+
+  LoadShader;
+
+  Src := TTerrainSourcePerlinNoise.Create(128, 128, 5297, 3215, 0.35, 9, 0.05, 0.05, 12.0, -2.0);
+  FTerrain := TTerrain.Create(128, 128, Src, FTerrainMaterial);
+  FWaterPlane := TTerrainWater.Create(128, 128, FWaterMaterial);
+
   RaiseLastGLError;
   FTerrain.Generate;
   RaiseLastGLError;
@@ -203,6 +220,9 @@ begin
       end;
       Handled := True;
     end;
+  end;
+  case Sym.unicode of
+    114: LoadShader;
   end;
 end;
 
@@ -352,6 +372,7 @@ begin
 
   glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
   FTerrain.Draw(FCamera.Pos, FCamera.TransformedPos, FCamera.Front);
+  FWaterPlane.Draw;
   glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
   glColor4f(1, 1, 1, 1);
   glDisable(GL_LIGHTING);
@@ -397,6 +418,27 @@ begin
   glEnable(GL_BLEND);
 
   DoRenderBackgroundGeometry;
+end;
+
+procedure TTT3DScene.LoadOneShader(Shader: TGLShader; const VSFile,
+  FSFile: String);
+var
+  VS, FS: TStream;
+begin
+  VS := FVFS.OpenFile(VSFile, fmOpenRead);
+  FS := FVFS.OpenFile(FSFile, fmOpenRead);
+  try
+    Shader.LoadShader(VS, FS);
+  finally
+    VS.Free;
+    FS.Free;
+  end;
+end;
+
+procedure TTT3DScene.LoadShader;
+begin
+  LoadOneShader(FTerrainMaterial.Shader, 'shader/terrain.vs', 'shader/terrain.fs');
+  LoadOneShader(FWaterMaterial.Shader, 'shader/waterplane.vs', 'shader/waterplane.fs');
 end;
 
 end.
