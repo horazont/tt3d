@@ -56,6 +56,7 @@ type
     procedure DoRenderBackground; override;
     procedure LoadOneShader(Shader: TGLShader; const VSFile, FSFile: String);
     procedure LoadShader;
+    procedure ReflectionPass;
   end;
 
 implementation
@@ -341,10 +342,6 @@ begin
   glDisable(GL_BLEND);
   glEnable(GL_CULL_FACE);
 
-  (*glTranslatef(0.0, 0.0, FMove.Z);
-  glRotatef(FRot.X, 1.0, 0.0, 0.0);
-  glRotatef(FRot.Y, 0.0, 0.0, 1.0);
-  glTranslatef(FMove.X, FMove.Y, FZ);      *)
   glLoadIdentity;
   Pos := Normalize(P);
   glLightfv(GL_LIGHT0, GL_POSITION, @Pos[0]);
@@ -356,64 +353,18 @@ begin
   FDebugMaterial.Render(GL_LINES);
   FDebugMaterial.UnbindForRendering;
 
-  //glPointSize(2.0);
-  //FTerrain.DrawDirect;
-
-  glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR,  @mat_specular[0]);
-  glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, @mat_shininess[0]);
-  glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT,   @mat_ambient[0]);
-  glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE,   @mat_diffuse[0]);
-
-  //glEnable(GL_LIGHTING);
-  //glEnable(GL_LIGHT0);
-  //glEnable(GL_COLOR_MATERIAL);
-  //glEnable(GL_NORMALIZE);
-
-
   glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
   FTerrain.Draw(FCamera.Pos, FCamera.TransformedPos, FCamera.Front);
   FWaterPlane.Draw;
   glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
   glColor4f(1, 1, 1, 1);
   glDisable(GL_LIGHTING);
-  //FTerrainMaterial.UnbindForRendering;
-
-  (*glColor4f(1, 1, 1, 1);
-  glBegin(GL_TRIANGLES);
-    glVertex2f(-1.0, -1.0);
-    glVertex2f(-1.0, 1.0);
-    glVertex2f(1.0, -1.0);
-
-    with FTerrain.Geometry.Format as TGLGeometryFormatP4C4 do
-    begin
-      UseMap(FTerrain.Geometry.Map);
-
-      for I := 0 to FTerrain.Geometry.Count - 1 do
-      begin
-        V := Color[I];
-        glColor4fv(@V[0]);
-        V := Position[I];
-        glVertex4fv(@V[0]);
-        WriteLn(FormatVector(V));
-      end;
-
-      UseMap(nil);
-    end;
-  glEnd;
-    Halt(0);       *)
 
   SetupOrthoDefault(0, Config.Video.Width, 0, Config.Video.Height);
   glClear(GL_DEPTH_BUFFER_BIT);
   glDisable(GL_DEPTH_TEST);
   glEnable(GL_SCISSOR_TEST);
   glDisable(GL_CULL_FACE);
-
-  (*glBegin(GL_QUADS);
-    glVertex2f(0, 0, 0, 0);
-    glVertex2f(0, 0, 128, 128);
-    glVertex2f(0, 0, 128, 128);
-    glVertex2f(0, 0, 128, 128);
-  glEnd;*)
 
   glEnable(GL_BLEND);
 

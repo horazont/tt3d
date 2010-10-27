@@ -14,7 +14,7 @@ uses
   GLHelpers, uiTT3D, GeometryColors, TerrainGeometrySimple, Voronoi, GLCamera,
   TerrainGeometryDynamic, TerrainSourcePerlinNoise, GLOctree, GLFrustum,
   GLObject, GLShaderMaterial, GLShader, TerrainGeometryShaded, TerrainSource,
-  TerrainWater;
+  TerrainWater, GLFramebuffer;
 
 var
   App: TTT3D;
