@@ -5,9 +5,10 @@ unit coreScene;
 interface
 
 uses
-  Classes, SysUtils, uiGL, GLGeometry, Geometry, ioSDL, dglOpenGL, GLHelpers,
+  Classes, SysUtils, uiGL, dglOpenGL, GLGeometry, Geometry, ioSDL, GLHelpers,
   ioConfig, sdl, TerrainGeometryShaded, TerrainSourcePerlinNoise, GLCamera,
-  GTVFS, TerrainSource, GLShaderMaterial, GLShader, glBitmap, TerrainWater;
+  GTVFS, TerrainSource, GLShaderMaterial, GLShader, glBitmap, TerrainWater,
+  GLFramebuffer, GLBase, math;
 
 type
 
@@ -44,8 +45,11 @@ type
 
     FWaterMaterial: TTerrainWaterMaterial;
     FWaterPlane: TTerrainWater;
+    FWaterBuffer: TGLFramebuffer;
+    FWaterTexture: TGLAttachmentRawTexture;
   protected
     procedure CameraMoved(Sender: TObject);
+    procedure ConfigToViewport(const AViewport: TGLViewport);
     procedure DoAbsMetricsChanged; override;
     procedure DoKeypress(Sym: TSDL_KeySym; Mode: TsdlKeyActionMode;
        var Handled: Boolean); override;
@@ -68,6 +72,7 @@ var
   I: Integer;
   v1, v2, o: TVector2;
   Src: TTerrainSource;
+  mat: TMatrix4f;
 begin
   inherited Create;
   (*FZ := 0.0;
@@ -169,17 +174,32 @@ begin
   FTerrainMaterial.NormalMap.SetFilter(GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR);}
   glGetError;
 
+  FWaterTexture := TGLAttachmentRawTexture.Create(GL_RGB8, 1024, 1024);
+  FWaterBuffer := TGLFramebuffer.Create;
+  FWaterBuffer.DepthAttachment := TGLAttachmentRenderBuffer.Create(GL_DEPTH_COMPONENT16, 1024, 1024);
+  FWaterBuffer.ColorAttachment[0] := FWaterTexture;
+
   FWaterMaterial := TTerrainWaterMaterial.Create(FTerrainBuffer, TTerrainFormat);
+  FWaterMaterial.ReflectTex := FWaterTexture.GetGLObject;
+  FWaterMaterial.NormalMap := FTerrainMaterial.NormalMap.ID;
 
   LoadShader;
 
-  Src := TTerrainSourcePerlinNoise.Create(128, 128, 5297, 3215, 0.35, 9, 0.05, 0.05, 12.0, -2.0);
-  FTerrain := TTerrain.Create(128, 128, Src, FTerrainMaterial);
-  FWaterPlane := TTerrainWater.Create(128, 128, FWaterMaterial);
+  Src := TTerrainSourcePerlinNoise.Create(640, 640, 5297, 3215, 0.35, 9, 0.05, 0.05, 12.0, -4.0);
+  FTerrain := TTerrain.Create(640, 640, Src, FTerrainMaterial);
+  FTerrain.WaterLine := -5.0;
+  FTerrain.SnowLine := 1.0;
+  FWaterPlane := TTerrainWater.Create(640, 640, FWaterMaterial);
 
   RaiseLastGLError;
   FTerrain.Generate;
   RaiseLastGLError;
+  glLoadIdentity;
+  glMatrixMode(GL_MODELVIEW);
+  glScalef(0.5, 0.5, 0.0);
+  glGetFloatv(GL_MODELVIEW_MATRIX, @mat);
+  WriteLn(FormatMatrix(mat));
+  glLoadIdentity;
 
   //FTerrain.UpdateForFrustum({Vector3(FCamera.Pos.Vec2, FCamera.Zoom)}FCamera.TransformedPos, {Max(64.0 / Max(VLength(FCamera.Velocity) / 10.0 + FCamera.ZoomVelocity / 10.0, 1.0), 2.0)} 512.0, 0.9);
 end;
@@ -198,9 +218,14 @@ begin
   FCameraMoved := True;
 end;
 
+procedure TTT3DScene.ConfigToViewport(const AViewport: TGLViewport);
+begin
+  glViewport(0, 0, Config.Video.Width, Config.Video.Height);
+  AViewport.SetAll(AbsTop, AbsLeft, AbsTop + AbsHeight, AbsLeft + AbsWidth);
+end;
+
 procedure TTT3DScene.DoAbsMetricsChanged;
 begin
-  FCamera.Viewport.SetAll(AbsTop, AbsLeft, AbsTop + AbsHeight, AbsLeft + AbsWidth);
   inherited DoAbsMetricsChanged;
 end;
 
@@ -269,16 +294,15 @@ procedure TTT3DScene.DoMouseMotion(Motion: TsdlMouseMotionEventData);
 var
   Factor: TVectorFloat;
 begin
-  if Motion.state and SDL_BUTTON(3) <> 0 then
-  begin
-    FCamera.AccelerateRotation(Vector2(Motion.yrel, Motion.xrel) * Pi);
-    FCamera.StopRotation(False);
-  end
-  else if (Motion.state and SDL_BUTTON(2) <> 0) or ((Motion.state and SDL_BUTTON(1) <> 0) and (Motion.state and SDL_BUTTON(3) <> 0)) then
+  if (Motion.state and SDL_BUTTON(2) <> 0) or ((Motion.state and SDL_BUTTON(1) <> 0) and (Motion.state and SDL_BUTTON(3) <> 0)) then
   begin
     Factor := FCamera.Zoom * 2.0;
     FCamera.Accelerate((FCamera.FlatRight * Motion.xrel + FCamera.FlatFront * Motion.yrel) * Factor);
     FCamera.StopMovement(False);
+  end else if Motion.state and SDL_BUTTON(3) <> 0 then
+  begin
+    FCamera.AccelerateRotation(Vector2(Motion.yrel, Motion.xrel) * Pi);
+    FCamera.StopRotation(False);
   end;
 end;
 
@@ -308,7 +332,7 @@ begin
   Z1 := (FTerrain.Heightfield[X, Y] * (1-XF) + FTerrain.Heightfield[X+1, Y] * (XF));
   Z2 := (FTerrain.Heightfield[X, Y+1] * (1-XF) + FTerrain.Heightfield[X+1, Y+1] * (XF));
 
-  FCamera.Pos := Vector3(V, Z1 * (1-YF) + Z2 * (YF));
+  FCamera.Pos := Vector3(V, Max(Z1 * (1-YF) + Z2 * (YF), FTerrain.WaterLine));
   if FCameraMoved then
   begin
 //    FTerrain.UpdateForFrustum({Vector3(FCamera.Pos.Vec2, FCamera.Zoom)}FCamera.TransformedPos, {Max(64.0 / Max(VLength(FCamera.Velocity) / 10.0 + FCamera.ZoomVelocity / 10.0, 1.0), 2.0)} 64.0, 0.5);
@@ -334,7 +358,10 @@ const
   Diffuse: TVector4f = (0.85, 0.80, 0.75, 1.0);
 var
   Pos: TVector4f;
+  cpos: TVector3;
 begin
+
+  FWaterMaterial.Heightfield := FTerrain.NormalMap;
   //SetupPerspective(AbsLeft, AbsWidth, AbsTop, AbsHeight, 1.0, 1000.0, Config.Video.FOV);
   glClear(GL_DEPTH_BUFFER_BIT);
   glDisable(GL_SCISSOR_TEST);
@@ -342,21 +369,25 @@ begin
   glDisable(GL_BLEND);
   glEnable(GL_CULL_FACE);
 
+  ConfigToViewport(FCamera.Viewport);
+
   glLoadIdentity;
   Pos := Normalize(P);
   glLightfv(GL_LIGHT0, GL_POSITION, @Pos[0]);
   glLightfv(GL_LIGHT0, GL_AMBIENT, @Ambient[0]);
   glLightfv(GL_LIGHT0, GL_DIFFUSE, @Diffuse[0]);
+
+  ReflectionPass;
+
   FCamera.Load;
 
   FDebugMaterial.BindForRendering(False);
   FDebugMaterial.Render(GL_LINES);
   FDebugMaterial.UnbindForRendering;
 
-  glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
   FTerrain.Draw(FCamera.Pos, FCamera.TransformedPos, FCamera.Front);
-  FWaterPlane.Draw;
-  glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
+  FWaterPlane.Draw(TranslationMatrix(Vector3(0.5, 0.5, 0.0)) * ScaleMatrix(Vector3(0.5, 0.5, 0.0)) * FCamera.GetOneMatrix{ * }, FCamera.Pos);
   glColor4f(1, 1, 1, 1);
   glDisable(GL_LIGHTING);
 
@@ -390,6 +421,25 @@ procedure TTT3DScene.LoadShader;
 begin
   LoadOneShader(FTerrainMaterial.Shader, 'shader/terrain.vs', 'shader/terrain.fs');
   LoadOneShader(FWaterMaterial.Shader, 'shader/waterplane.vs', 'shader/waterplane.fs');
+end;
+
+procedure TTT3DScene.ReflectionPass;
+begin
+  FWaterBuffer.Validate;
+  FWaterBuffer.SetupActualViewport;
+  //FWaterBuffer.SetupViewport(FCamera.Viewport);
+  FWaterBuffer.Bind;
+  glClear(GL_DEPTH_BUFFER_BIT or GL_COLOR_BUFFER_BIT);
+  FCamera.Load;
+  glTranslatef(0.0, 0.0, -10.4);
+  glScalef(1.0, 1.0, -1.0);
+
+  glFrontFace(GL_CW);
+  FTerrain.Draw(FCamera.Pos, FCamera.TransformedPos, FCamera.Front);
+  glFrontFace(GL_CCW);
+
+  FWaterBuffer.Unbind;
+  ConfigToViewport(FCamera.Viewport);
 end;
 
 end.

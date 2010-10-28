@@ -15,6 +15,8 @@ void main()
 {
   float fog = clamp(exp(length(camPos.xy - untransformed.xy) * 0.005) - 1.0, 0.0, 1.0); 
   // fog = 0.0;
+  if (untransformed.z < waterLine - 0.2)
+    discard;
   if (fog == 1.0)
     discard;
   

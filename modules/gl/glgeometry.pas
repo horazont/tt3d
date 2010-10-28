@@ -5,7 +5,7 @@ unit GLGeometry;
 interface
 
 uses
-  Classes, SysUtils, dglOpenGL, fgl, Geometry, math, stwIntMap, GTBase;
+  Classes, SysUtils, dglOpenGL, fgl, Geometry, math, stwIntMap, GTBase, GLBase;
 
 type
   EGLGenericBufferError = class (Exception);
@@ -344,18 +344,7 @@ type
       const ACount: Integer): TVertexIndicies; override;
   end;
 
-procedure RaiseLastGLError;
-
 implementation
-
-procedure RaiseLastGLError;
-var
-  Error: TGLenum;
-begin
-  Error := glGetError();
-  if Error <> GL_NO_ERROR then
-    raise Exception.CreateFmt('OpenGL error: %s', [gluErrorString(Error)]);
-end;
 
 { TGLGenericBuffer }
 

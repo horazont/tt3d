@@ -65,8 +65,11 @@ type
     procedure RecalculateProjection; virtual; abstract;
     procedure ViewportChanged(Sender: TObject); virtual;
   public
+    function GetOneMatrix: TMatrix4f;
     procedure Load;
+    procedure LoadAsOne;
     procedure Mult;
+    procedure MultAsOne;
     procedure Update(const TimeInterval: Double); virtual;
     procedure Validate;
   public
@@ -285,6 +288,15 @@ begin
 
 end;
 
+function TGLCamera.GetOneMatrix: TMatrix4f;
+begin
+  if FProjectionInvalidated then
+    RecalculateProjection;
+  if FModelViewInvalidated then
+    RecalculateModelView;
+  Result := FProjection * FModelView;
+end;
+
 procedure TGLCamera.Load;
 begin
   if FProjectionInvalidated then
@@ -297,6 +309,18 @@ begin
   glLoadMatrixf(@FModelView[0]);
 end;
 
+procedure TGLCamera.LoadAsOne;
+var
+  Tmp: TMatrix4f;
+begin
+  if FProjectionInvalidated then
+    RecalculateProjection;
+  if FModelViewInvalidated then
+    RecalculateModelView;
+  Tmp := FModelView * FProjection;
+  glLoadMatrixf(@Tmp);
+end;
+
 procedure TGLCamera.Mult;
 begin
   if FProjectionInvalidated then
@@ -306,6 +330,16 @@ begin
   glMatrixMode(GL_PROJECTION);
   glMultMatrixf(@FProjection[0]);
   glMatrixMode(GL_MODELVIEW);
+  glMultMatrixf(@FModelView[0]);
+end;
+
+procedure TGLCamera.MultAsOne;
+begin
+  if FProjectionInvalidated then
+    RecalculateProjection;
+  if FModelViewInvalidated then
+    RecalculateModelView;
+  glMultMatrixf(@FProjection[0]);
   glMultMatrixf(@FModelView[0]);
 end;
 

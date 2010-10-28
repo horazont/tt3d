@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, GLGeometry, Geometry, dglOpenGL, TerrainSource,
-  GLShaderMaterial, glBitmap, TerrainSourcePerlinNoise;
+  GLShaderMaterial, glBitmap, TerrainSourcePerlinNoise, GLBase;
 
 const
   NOISE_TEXTURE_SIZE = 256;
@@ -54,6 +54,7 @@ type
     FWidth, FHeight: Integer;
     FHeightfield: PSingle;
     FSource: TTerrainSource;
+    FWaterLine, FSnowLine: Single;
     function GetHeightfield(X, Y: Integer): Single;
   public
     procedure Burn;
@@ -61,8 +62,11 @@ type
     procedure Generate;
   public
     property Height: Integer read FHeight;
-    property Width: Integer read FWidth;
     property Heightfield[X, Y: Integer]: Single read GetHeightfield;
+    property NormalMap: TGLuint read FNormalMap;
+    property SnowLine: Single read FSnowLine write FSnowLine;
+    property WaterLine: Single read FWaterLine write FWaterLine;
+    property Width: Integer read FWidth;
   end;
 
 implementation
@@ -206,8 +210,8 @@ begin
   glUniform1i(glGetUniformLocation(FMaterial.Shader.ProgramObject, 'tangentMap'), 2);
   glUniform1i(glGetUniformLocation(FMaterial.Shader.ProgramObject, 'colorMap'), 3);
   glUniform1i(glGetUniformLocation(FMaterial.Shader.ProgramObject, 'normalDetailMap'), 4);
-  glUniform1f(glGetUniformLocation(FMaterial.Shader.ProgramObject, 'waterLine'), -5.0);
-  glUniform1f(glGetUniformLocation(FMaterial.Shader.ProgramObject, 'snowLine'), 3.0);
+  glUniform1f(glGetUniformLocation(FMaterial.Shader.ProgramObject, 'waterLine'), FWaterLine);
+  glUniform1f(glGetUniformLocation(FMaterial.Shader.ProgramObject, 'snowLine'), FSnowLine);
   glUniform3fv(glGetUniformLocation(FMaterial.Shader.ProgramObject, 'camPos'), 1, @Cam3f[0]);
   glUniform2f(LocWidth, FWidth, FHeight);
   for Y := 0 to H - 1 do

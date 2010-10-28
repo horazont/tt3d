@@ -9,12 +9,13 @@ uses
   cthreads,
   {$ENDIF}{$ENDIF}
   {$ifdef UseHeapTrc}heaptrc,{$endif}
-  SysUtils, Classes, Geometry, math, dateutils, ioConfig, coreUIBootstrap,
-  TransportGeometryGL, FileUtil, uiGL, GLMaterials, XMLGeometry, coreScene,
-  GLHelpers, uiTT3D, GeometryColors, TerrainGeometrySimple, Voronoi, GLCamera,
-  TerrainGeometryDynamic, TerrainSourcePerlinNoise, GLOctree, GLFrustum,
-  GLObject, GLShaderMaterial, GLShader, TerrainGeometryShaded, TerrainSource,
-  TerrainWater, GLFramebuffer;
+  SysUtils, Classes, Geometry, math, dateutils, ioConfig, iolog,
+  coreUIBootstrap, TransportGeometryGL, FileUtil, uiGL, GLMaterials,
+  XMLGeometry, coreScene, GLHelpers, uiTT3D, GeometryColors,
+  TerrainGeometrySimple, Voronoi, GLCamera, TerrainGeometryDynamic,
+  TerrainSourcePerlinNoise, GLOctree, GLFrustum, GLObject, GLShaderMaterial,
+  GLShader, TerrainGeometryShaded, TerrainSource, TerrainWater, GLFramebuffer,
+  GLBase, DynamicException;
 
 var
   App: TTT3D;

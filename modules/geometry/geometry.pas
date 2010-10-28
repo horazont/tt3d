@@ -94,6 +94,7 @@ operator * (A: TVectorFloat; B: TVector4): TVector4; inline;
 operator * (A: TMatrix3; B: TVector3): TVector3; inline;
 operator * (A: TMatrix4; B: TVector4): TVector4; inline;
 operator * (A, B: TMatrix4): TMatrix4; inline;
+operator * (A, B: TMatrix4f): TMatrix4f; inline;
 
 operator ** (A, B: TVector3): TVector3; inline;
 operator ** (A: TCubicBezier1; B: TVectorFloat): TVectorFloat; inline;
@@ -154,12 +155,14 @@ function Vector4(Vec4: TVector4f): TVector4; inline;
 function Vector4f(Vec4: TVector4): TVector4f; inline;
 function Vector4f(X, Y, Z: Single; W: Single = 1.0): TVector4f; inline;
 function Vector4f(Vec3f: TVector3f; W: Single = 1.0): TVector4f; inline;
+function Matrix4f(C11, C12, C13, C14, C21, C22, C23, C24, C31, C32, C33, C34, C41, C42, C43, C44: Single): TMatrix4f; inline;
 
 function RotationMatrix(Axis: TVector3; Angle: TVectorFloat): TMatrix3;
 function RotationMatrixX(Angle: TVectorFloat): TMatrix4;
 function RotationMatrixY(Angle: TVectorFloat): TMatrix4;
 function RotationMatrixZ(Angle: TVectorFloat): TMatrix4;
 function TranslationMatrix(const V: TVector3): TMatrix4; inline;
+function ScaleMatrix(const V: TVector3): TMatrix4; inline;
 
 function Intersection(const AOrigin, ADirection, BOrigin, BDirection: TVector2): TVector2;
 function Intersection(const ADirection, BDirection, BOffset: TVector2): TVector2;
@@ -333,6 +336,29 @@ begin
 end;
 
 operator * (A, B: TMatrix4): TMatrix4;
+begin
+  Result[0] := A[0] * B[0] + A[4] * B[1] + A[8] * B[2] + A[12] * B[3];
+  Result[1] := A[1] * B[0] + A[5] * B[1] + A[9] * B[2] + A[13] * B[3];
+  Result[2] := A[2] * B[0] + A[6] * B[1] + A[10] * B[2] + A[14] * B[3];
+  Result[3] := A[3] * B[0] + A[7] * B[1] + A[11] * B[2] + A[15] * B[3];
+
+  Result[4] := A[0] * B[4] + A[4] * B[5] + A[8] * B[6] + A[12] * B[7];
+  Result[5] := A[1] * B[4] + A[5] * B[5] + A[9] * B[6] + A[13] * B[7];
+  Result[6] := A[2] * B[4] + A[6] * B[5] + A[10] * B[6] + A[14] * B[7];
+  Result[7] := A[3] * B[4] + A[7] * B[5] + A[11] * B[6] + A[15] * B[7];
+
+  Result[8] := A[0] * B[8] + A[4] * B[9] + A[8] * B[10] + A[12] * B[11];
+  Result[9] := A[1] * B[8] + A[5] * B[9] + A[9] * B[10] + A[13] * B[11];
+  Result[10] := A[2] * B[8] + A[6] * B[9] + A[10] * B[10] + A[14] * B[11];
+  Result[11] := A[3] * B[8] + A[7] * B[9] + A[11] * B[10] + A[15] * B[11];
+
+  Result[12] := A[0] * B[12] + A[4] * B[13] + A[8] * B[14] + A[12] * B[15];
+  Result[13] := A[1] * B[12] + A[5] * B[13] + A[9] * B[14] + A[13] * B[15];
+  Result[14] := A[2] * B[12] + A[6] * B[13] + A[10] * B[14] + A[14] * B[15];
+  Result[15] := A[3] * B[12] + A[7] * B[13] + A[11] * B[14] + A[15] * B[15];
+end;
+
+operator * (A, B: TMatrix4f): TMatrix4f;
 begin
   Result[0] := A[0] * B[0] + A[4] * B[1] + A[8] * B[2] + A[12] * B[3];
   Result[1] := A[1] * B[0] + A[5] * B[1] + A[9] * B[2] + A[13] * B[3];
@@ -779,6 +805,35 @@ begin
   Result[3] := W;
 end;
 
+function Matrix4f(C11, C12, C13, C14, C21, C22, C23, C24, C31, C32, C33, C34,
+  C41, C42, C43, C44: Single): TMatrix4f;
+begin
+  Result[0] := C11;
+  Result[1] := C12;
+  Result[2] := C13;
+  Result[3] := C14;
+
+  Result[4] := C21;
+  Result[5] := C22;
+  Result[6] := C23;
+  Result[7] := C24;
+
+  Result[8] := C31;
+  Result[9] := C32;
+  Result[10] := C33;
+  Result[11] := C34;
+
+  Result[12] := C41;
+  Result[13] := C42;
+  Result[14] := C43;
+  Result[15] := C44;
+end;
+
+function Matrix4f(Components: TMatrix4f): TMatrix4f;
+begin
+  Result := Components;
+end;
+
 function RotationMatrix(Axis: TVector3; Angle: TVectorFloat): TMatrix3;
 var
   RawSin, RawCos: float;
@@ -862,6 +917,14 @@ begin
   Result[12] := V.X;
   Result[13] := V.Y;
   Result[14] := V.Z;
+end;
+
+function ScaleMatrix(const V: TVector3): TMatrix4;
+begin
+  Result := IdentityMatrix4;
+  Result[0] := V.X;
+  Result[5] := V.Y;
+  Result[10] := V.Z;
 end;
 
 function Intersection(const AOrigin, ADirection, BOrigin, BDirection: TVector2

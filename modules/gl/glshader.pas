@@ -5,7 +5,7 @@ unit GLShader;
 interface
 
 uses
-  Classes, SysUtils, dglOpenGL, ioLog, GLGeometry;
+  Classes, SysUtils, dglOpenGL, ioLog, GLBase;
 
 type
 

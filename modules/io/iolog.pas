@@ -393,7 +393,7 @@ begin
           StyleExt := ' style="border-top: 2px solid #000000"'
         else
           StyleExt := '';
-        FinalHTML += '<tr'+StyleExt+'><td>'+CurrentClass+'</td><td>'+CurrentType+'</td><td>'+CurrentName+'</td></tr>';
+        FinalHTML += '<tr'+StyleExt+'><td>'+CurrentClass+'</td><td>'+CurrentType+'</td><td><a href="http://www.opengl.org/registry/specs/'+CurrentType+'/'+CurrentName+'.txt">'+CurrentName+'</a></td></tr>';
         
         LastClass := CurrentClass;
         LastType := CurrentType;
