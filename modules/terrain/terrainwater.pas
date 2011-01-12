@@ -37,10 +37,13 @@ type
     FGeometry: TGLGeometryObject;
     FMaterial: TTerrainWaterMaterial;
     FWidth, FHeight: Integer;
+    FWaterLine: Single;
   protected
     procedure Generate;
   public
     procedure Draw(const Matrix: TMatrix4f; const CamPos: TVector3f);
+  public
+    property WaterLine: Single read FWaterLine write FWaterLine;
   end;
 
 implementation
@@ -91,8 +94,7 @@ begin
 
   FMaterial.BindForRendering(False);
 
-  glUniform1f(glGetUniformLocation(FMaterial.Shader.ProgramObject, 'waterLine'), -5.2);
-  glUniform1f(glGetUniformLocation(FMaterial.Shader.ProgramObject, 'snowLine'), 3.0);
+  glUniform1f(glGetUniformLocation(FMaterial.Shader.ProgramObject, 'waterLine'), FWaterLine);
   glUniformMatrix4fv(glGetUniformLocation(FMaterial.Shader.ProgramObject, 'texMat'), 1, False, @Matrix);
   glUniform1i(glGetUniformLocation(FMaterial.Shader.ProgramObject, 'reflectTex'), 0);
   glUniform1i(glGetUniformLocation(FMaterial.Shader.ProgramObject, 'normalMap'), 1);

@@ -185,11 +185,12 @@ begin
 
   LoadShader;
 
-  Src := TTerrainSourcePerlinNoise.Create(640, 640, 5297, 3215, 0.35, 9, 0.05, 0.05, 12.0, -4.0);
-  FTerrain := TTerrain.Create(640, 640, Src, FTerrainMaterial);
-  FTerrain.WaterLine := -5.0;
-  FTerrain.SnowLine := 1.0;
-  FWaterPlane := TTerrainWater.Create(640, 640, FWaterMaterial);
+  Src := TTerrainSourcePerlinNoise.Create(512, 512, 5297, 3215, 0.4, 11, 0.05, 0.05, 8.0, 0.0);
+  FTerrain := TTerrain.Create(512, 512, Src, FTerrainMaterial);
+  FTerrain.WaterLine := 0.0;
+  FTerrain.SnowLine := 8.0;
+  FWaterPlane := TTerrainWater.Create(512, 512, FWaterMaterial);
+  FWaterPlane.WaterLine := 0.0;
 
   RaiseLastGLError;
   FTerrain.Generate;
@@ -237,10 +238,6 @@ begin
     begin
       if Mode = kmPress then
       begin
-        (*FMoving := True;
-        FMoveTarget := Vector2(0.0, 0.0);
-        FRotating := True;
-        FRotateTarget := Vector2(-45.0, 45.0);*)
         FCamera.IssueMoveTo(Vector2(0.0, 0.0));
         FCamera.IssueRotateTo(Vector2(0.0, 0.0));
       end;
@@ -333,12 +330,6 @@ begin
   Z2 := (FTerrain.Heightfield[X, Y+1] * (1-XF) + FTerrain.Heightfield[X+1, Y+1] * (XF));
 
   FCamera.Pos := Vector3(V, Max(Z1 * (1-YF) + Z2 * (YF), FTerrain.WaterLine));
-  if FCameraMoved then
-  begin
-//    FTerrain.UpdateForFrustum({Vector3(FCamera.Pos.Vec2, FCamera.Zoom)}FCamera.TransformedPos, {Max(64.0 / Max(VLength(FCamera.Velocity) / 10.0 + FCamera.ZoomVelocity / 10.0, 1.0), 2.0)} 64.0, 0.5);
-    //WriteLn(FormatVector(IntersectionPlane(FCamera.TransformedPos, FCamera.Front, Vector3(0.0, 0.0, 1.0))));
-  end;
-  //WriteLn(FormatVector(FCamera.TransformedPos));
 
   DoUpdateBackgroundGeometry;
 end;
@@ -386,8 +377,8 @@ begin
   FDebugMaterial.UnbindForRendering;
 
   FTerrain.Draw(FCamera.Pos, FCamera.TransformedPos, FCamera.Front);
+  FWaterPlane.Draw(TranslationMatrix(Vector3(0.5, 0.5, 0.0)) * ScaleMatrix(Vector3(0.5, 0.5, 0.0)) * FCamera.GetOneMatrix, FCamera.Pos);
 
-  FWaterPlane.Draw(TranslationMatrix(Vector3(0.5, 0.5, 0.0)) * ScaleMatrix(Vector3(0.5, 0.5, 0.0)) * FCamera.GetOneMatrix{ * }, FCamera.Pos);
   glColor4f(1, 1, 1, 1);
   glDisable(GL_LIGHTING);
 
@@ -431,7 +422,7 @@ begin
   FWaterBuffer.Bind;
   glClear(GL_DEPTH_BUFFER_BIT or GL_COLOR_BUFFER_BIT);
   FCamera.Load;
-  glTranslatef(0.0, 0.0, -10.4);
+  glTranslatef(0.0, 0.0, FTerrain.WaterLine);
   glScalef(1.0, 1.0, -1.0);
 
   glFrontFace(GL_CW);

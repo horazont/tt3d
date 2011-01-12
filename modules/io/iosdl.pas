@@ -470,6 +470,7 @@ begin
           FCurrentEffectiveFrameCount := 0;
           FCurrentEffectiveFPSTime := 0;
         end;
+        Sleep(1);
       end;
       GeneralLog.LogFmt(lmetInfo, 'Runtime: %0.2f secs', 'TsdlApplication.RunApp', [(SDL_GetTicks - FStartTime) / 1000]);
     except

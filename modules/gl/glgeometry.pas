@@ -1126,7 +1126,7 @@ begin
   begin
     for X := 0 to FWidth - 2 do
     begin
-      if (X and 1) = 1 then
+      if ((X and 1) = 1) xor ((Y and 1) = 1) then
       begin
         Result[IJ] := AVBIndicies[IV(X+1, Y+1)];
         Result[IJ+1] := AVBIndicies[IV(X, Y+1)];

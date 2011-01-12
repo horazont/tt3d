@@ -13,7 +13,9 @@ const float reflectScale = 1.0;
 
 void main()
 {    
-  float fog = clamp(exp(length(camPos.xy - gl_TexCoord[0].xy) * 0.005) - 1.0, 0.0, 1.0); 
+  if (height > waterLine)
+    discard;
+  float fog = clamp(exp(length(camPos.xy - gl_TexCoord[0].xy) * 0.005) - 1.0, 0.0, 1.0);
   if (fog == 1.0)
     discard;
   
