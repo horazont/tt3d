@@ -192,6 +192,7 @@ type
   end;
 
   TPathNodeLinks = specialize TFPGList<TPathNodeLink>;
+  PPathNodeLink = ^TPathNodeLink;
 
   { TPathNodeSide }
 
@@ -220,7 +221,9 @@ type
     function ToDefinition: TPathSideDefinition;
   public
     property Count: Integer read GetCount;
+    property Direction: TPathNodeSideDirection read FDirection;
     property Links[Index: Integer]: TPathNodeLink read GetLink; default;
+    property Owner: TPathNodeSidePair read FOwner;
   end;
 
   { TPathNodeSidePair }
@@ -241,6 +244,7 @@ type
     procedure SetOwner(const AOwner: TPathNode);
     procedure UpdateSides;
   public
+    property Owner: TPathNode read FOwner;
     property Side[ASide: TPathNodeSideDirection]: TPathNodeSide read GetSide; default;
     property Tangent: TVector3 read FTangent write SetTangent;
   end;
@@ -261,7 +265,7 @@ type
     procedure FullClear;
   public
     procedure Clear;
-    function NewSidePair: Integer;
+    function NewSidePair(const ATangent: TVector3): Integer;
     function Connect(const AThroughSide, AToSide: TPathSideDefinition;
       const AAtNode: TPathNode; const AWithLink: TPathLinkClass): TPathLink;
   public
@@ -925,7 +929,6 @@ constructor TPathNode.Create;
 begin
   inherited Create;
   FSidePairs := TPathNodeSidePairs.Create;
-  NewSidePair;
 end;
 
 destructor TPathNode.Destroy;
@@ -968,15 +971,15 @@ end;
 procedure TPathNode.Clear;
 begin
   FullClear;
-  NewSidePair;
 end;
 
-function TPathNode.NewSidePair: Integer;
+function TPathNode.NewSidePair(const ATangent: TVector3): Integer;
 var
   Pair: TPathNodeSidePair;
 begin
   Pair := TPathNodeSidePair.Create;
   Pair.SetOwner(Self);
+  Pair.Tangent := ATangent;
   Result := FSidePairs.Add(Pair);
 end;
 
