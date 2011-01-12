@@ -1,0 +1,35 @@
+Level classes:
+  Fundament
+  Actual
+  Break
+  Roof
+
+Fundament must be followed by Actual
+Actual must be followed by Break or Roof
+Break must be followed by Actual
+Roof is the topmost level
+
+Each defined Actual must have one wall class assigned
+Each wall class is defined by its main texture and by applicable decorations
+
+Wall class:
+  Min length
+  Max length
+  Decorations
+
+Decoration:
+  Min and max length
+  Model and stuff of course
+  Conditions (like preceding or following decorations or a minimum distance to
+    another decoration)
+  
+Fundament / Break:
+  Model and stuff
+  
+Roof:
+  Model and stuff
+  
+Each defined level can also constrain the specific levels used on it. By that,
+fundaments will define the kind of building which is constructed.
+
+Example XML:

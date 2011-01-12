@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<building-tiles>
+    <level-groups>
+        <level-group>
+            <id>default walls</id>
+            <items>
+                <id>some id</id>
+                <id>some other id</id>
+            </items>
+        </level-group>
+        <level-group>
+            <id>default roof and breaks</id>
+            <items>
+                <id>some break id</id>
+                <id>some roof id</id>
+            </items>
+        </level-group>
+    </level-groups>
+    <levels>
+        <level>
+            <id>Some unique id — we are modern, so no constraints in contents</id>
+            
+            <!-- Defines the class of the level. Must be one of:
+                fundament
+                wall
+                break
+                roof -->
+            <class>fundament</class>
+            
+            <denies>
+                <all/>
+            </denies>
+            <allows>
+                <group>default walls</group>
+            </allows>
+            
+            <!-- optional. Only used in fundament. Default: false. -->
+            <visual>false</visual>
+        </level>
+        
+        <level>
+            <id>some other id</id>
+            
+            <class>wall</class>
+            
+            <denies>
+                <all/>
+            </denies>
+            <allows>
+                <group>default walls</group>
+                <group>default roof and breaks</group>
+            </allows>
+            
+            <!-- only for wall class. Defines the wall to use. -->
+            <wall>some wall id</wall>
+        </level>
+        
+        <level>
+            <id>some break id</id>
+        </level>
+    </levels>
+</building-tiles>
