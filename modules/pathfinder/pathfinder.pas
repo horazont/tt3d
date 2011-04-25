@@ -5,7 +5,7 @@ unit Pathfinder;
 interface
 
 uses
-  Classes, SysUtils, TransportGraph, contnrs, stwOrderedQueue, Geometry, math,
+  Classes, SysUtils, TransportGraph, contnrs, GTOrderedQueue, Geometry, math,
   fgl;
 
 type
@@ -24,7 +24,7 @@ type
     Links: array of TPathNodeLink;
   end;
 
-  TPathfinderQueue_ = specialize TstwOrderedQueue<PPathfinderNode>;
+  TPathfinderQueue_ = specialize TGTOrderedQueue<PPathfinderNode>;
 
   { TPathfinderQueue }
 

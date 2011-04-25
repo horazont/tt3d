@@ -8,7 +8,8 @@ uses
   Classes, SysUtils, uiGL, dglOpenGL, GLGeometry, Geometry, ioSDL, GLHelpers,
   ioConfig, sdl, TerrainGeometryShaded, TerrainSourcePerlinNoise, GLCamera,
   GTVFS, TerrainSource, GLShaderMaterial, GLShader, glBitmap, TerrainWater,
-  GLFramebuffer, GLBase, math;
+  GLFramebuffer, GLBase, math, GTVFSDirectoryMount, GTVFSXDG, GTURIAutoRegister,
+  GTProtocolVFS, GTURI;
 
 type
 
@@ -24,8 +25,6 @@ type
 
     FAxis: TGLGeometryObject;
     FGrid: TGLGeometryObject;
-
-    FVFS: TGTVFS;
 
     (*FMove, FMoveSpeed, FMoveAccel: TVector3;
     FMoveTarget: TVector2;
@@ -73,6 +72,7 @@ var
   v1, v2, o: TVector2;
   Src: TTerrainSource;
   mat: TMatrix4f;
+  S: TStream;
 begin
   inherited Create;
   (*FZ := 0.0;
@@ -87,8 +87,12 @@ begin
   FRotSpeed := Vector2(0.0, 0.0);
   FRotAccel := Vector2(0.0, 0.0);     *)
 
-  FVFS := TGTVFS.Create;
-  FVFS.AddMount(TGTMountDirectory.Create(FVFS, ExtractFilePath(ParamStr(0))), fpFileSystem);
+  TGTProtocolVFS.VFS := TGTXDGVFS.Create;
+  with TGTProtocolVFS.VFS do
+  begin;
+    AddMount(TGTMountDirectory.Create(TGTProtocolVFS.VFS, ExtractFilePath(ParamStr(0)), True), '/data/', fpFallback);
+    DumpMounts;
+  end;
 
   FCamera := TGLCameraFreeSmooth.Create;
 
@@ -158,16 +162,23 @@ begin
 
   FTerrainBuffer := TGLGeometryBuffer.Create(TTerrainFormat.GetNeededVertexSize);
   FTerrainMaterial := TTerrainMaterial.Create(FTerrainBuffer, TTerrainFormat);
-  FTerrainMaterial.ColorMap := TglBitmap2D.Create(FVFS.OpenFile('textures/terrain/temperate.png'));
+  S := TGTURIStream.Create('vfs:///data/textures/terrain/temperate.png', omRead);
+  try
+    FTerrainMaterial.ColorMap := TglBitmap2D.Create(S);
+  finally
+    S.Free;
+  end;
   FTerrainMaterial.ColorMap.MipMap := mmNone;
   FTerrainMaterial.ColorMap.SetFilter(GL_LINEAR, GL_LINEAR);
   FTerrainMaterial.ColorMap.GenTexture();
-  {FTerrainMaterial.ColorMap.MipMap := mmMipmap;
-  FTerrainMaterial.ColorMap.SetFilter(GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR);}
-  FTerrainMaterial.NormalMap := TglBitmap2D.Create(FVFS.OpenFile('textures/terrain/normalmap.png'));
-  {FTerrainMaterial.NormalMap.SetWrap(GL_REPEAT, GL_REPEAT);
-  FTerrainMaterial.NormalMap.MipMap := mmMipmap;
-  FTerrainMaterial.NormalMap.SetFilter(GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR);}
+
+  S := TGTURIStream.Create('vfs:///data/textures/terrain/normalmap.png', omRead);
+  try
+    FTerrainMaterial.NormalMap := TglBitmap2D.Create(S);
+  finally
+    S.Free;
+  end;
+
   FTerrainMaterial.NormalMap.GenTexture();
   FTerrainMaterial.NormalMap.SetWrap(GL_REPEAT, GL_REPEAT);
   {FTerrainMaterial.NormalMap.MipMap := mmMipmap;
@@ -398,8 +409,8 @@ procedure TTT3DScene.LoadOneShader(Shader: TGLShader; const VSFile,
 var
   VS, FS: TStream;
 begin
-  VS := FVFS.OpenFile(VSFile, fmOpenRead);
-  FS := FVFS.OpenFile(FSFile, fmOpenRead);
+  VS := TGTURIStream.Create(VSFile, omRead);
+  FS := TGTURIStream.Create(FSFile, omRead);
   try
     Shader.LoadShader(VS, FS);
   finally
@@ -410,8 +421,8 @@ end;
 
 procedure TTT3DScene.LoadShader;
 begin
-  LoadOneShader(FTerrainMaterial.Shader, 'shader/terrain.vs', 'shader/terrain.fs');
-  LoadOneShader(FWaterMaterial.Shader, 'shader/waterplane.vs', 'shader/waterplane.fs');
+  LoadOneShader(FTerrainMaterial.Shader, 'vfs:///data/shader/terrain.vs', 'vfs:///data/shader/terrain.fs');
+  LoadOneShader(FWaterMaterial.Shader, 'vfs:///data/shader/waterplane.vs', 'vfs:///data/shader/waterplane.fs');
 end;
 
 procedure TTT3DScene.ReflectionPass;

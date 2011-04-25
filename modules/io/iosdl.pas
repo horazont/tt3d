@@ -7,7 +7,7 @@ interface
 
 uses
   Classes, SysUtils, dglOpenGL, sdl, sdl_net, sdl_ttf, sdl_image, ioLog,
-  CustApp, GTXDG;
+  CustApp, GTPaths;
   
 type
   TsdlKeyActionMode = (kmPress, kmRelease);

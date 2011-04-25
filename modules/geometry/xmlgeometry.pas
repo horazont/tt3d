@@ -5,7 +5,7 @@ unit XMLGeometry;
 interface
 
 uses
-  Classes, SysUtils, Geometry, xml;
+  Classes, SysUtils, Geometry, GTXML;
 
 function LoadVector2(XMLNode: TxmlNode): TVector2;
 function LoadVector2(XMLNode: TxmlNode; ADefault: TVector2): TVector2;

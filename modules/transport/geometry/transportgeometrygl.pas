@@ -5,7 +5,7 @@ unit TransportGeometryGL;
 interface
 
 uses
-  Classes, SysUtils, GLGeometry, Geometry, TransportGraph, GTBase, stwIntMap,
+  Classes, SysUtils, GLGeometry, Geometry, TransportGraph, GTBase, GTIntMap,
   fgl;
 
 type
@@ -95,7 +95,7 @@ type
     property RailStones: TGLMaterial index 2 read GetMaterial write SetMaterial;
   end;
 
-  TTransportGeometryMap = specialize TstwGIntHashMap<TTransportGeometryNode>;
+  TTransportGeometryMap = specialize TGTIntHashMap<TTransportGeometryNode>;
   TTransportGeometryNodes = specialize TFPGList<TTransportGeometryNode>;
 
   { TTransportGeometryManager }

@@ -5,7 +5,7 @@ unit Voronoi;
 interface
 
 uses
-  Classes, SysUtils, Geometry;
+  Classes, SysUtils, Geometry, fgl;
 
 type
   TPolygon2 = array of TVector2;
@@ -13,8 +13,8 @@ type
 
   TPolygons2 = array of TPolygon2;
 
-  TDotCloud2 = array of TVector2;
-  TDotCloud3 = array of TVector3;
+  TDotCloud2 = specialize TFPGList<TVector2>;
+  TDotCloud3 = specialize TFPGList<TVector3>;
 
   TVoronoiLine2 = record
     Center: TVector2;
@@ -22,9 +22,21 @@ type
     T1, T2: TVectorFloat;
   end;
 
+procedure GrahamScan2(const DotCloud: TDotCloud2; const ConvexHull: TDotCloud2);
+
 procedure Voronoi2(const DotCloud: TDotCloud2; const Polygons: TPolygons2);
 
 implementation
+
+function GrahamScanSort2(const A, B: TVector2): Integer;
+begin
+
+end;
+
+procedure GrahamScan2(const DotCloud: TDotCloud2; const ConvexHull: TDotCloud2);
+begin
+
+end;
 
 procedure Voronoi2(const DotCloud: TDotCloud2; const Polygons: TPolygons2);
 begin

@@ -5,7 +5,7 @@ unit GLGeometry;
 interface
 
 uses
-  Classes, SysUtils, dglOpenGL, fgl, Geometry, math, stwIntMap, GTBase, GLBase;
+  Classes, SysUtils, dglOpenGL, fgl, Geometry, math, GTIntMap, GTBase, GLBase;
 
 type
   EGLGenericBufferError = class (Exception);

@@ -5,7 +5,7 @@ unit uiGL;
 interface
 
 uses
-  Classes, SysUtils, GLGeometry, GLMaterials, GTBase, fgl, xml, Geometry,
+  Classes, SysUtils, GLGeometry, GLMaterials, GTBase, fgl, GTXML, Geometry,
   XMLGeometry, dglOpenGL, ioSDL, sdl;
 
 type

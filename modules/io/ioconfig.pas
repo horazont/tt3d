@@ -5,13 +5,13 @@ unit ioConfig;
 interface
 
 uses
-  Classes, SysUtils, GTConfig, GTXDG, GTBase;
+  Classes, SysUtils, GTConfig, GTPaths, GTBase;
 
 type
 
   { TTT3DPaths }
 
-  TTT3DPaths = class (TGTXDGPaths)
+  TTT3DPaths = class (TGTPaths)
   public
     class function GetAppName: String; override;
   end;
@@ -93,7 +93,7 @@ begin
 end;
 
 initialization
-XDG := TTT3DPaths;
+Paths := TTT3DPaths;
 
 Config := TTT3DSettings.Create;
 

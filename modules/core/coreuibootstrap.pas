@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, ioSDL, sdl, ioLog, dglOpenGL, ioConfig, TransportGraph,
-  GTXDG, GLGeometry, Geometry, TransportGeometryGL, uiGL, coreScene, GLHelpers,
+  GTPaths, GLGeometry, Geometry, TransportGeometryGL, uiGL, coreScene, GLHelpers,
   uiTT3D, GeometryColors, math;
 
 type
@@ -67,7 +67,7 @@ end;
 
 function TTT3D.GetApplicationName: String;
 begin
-  Result := XDG.GetAppName;
+  Result := Paths.GetAppName;
 end;
 
 function TTT3D.GetApplicationVersion: TsdlApplicationVersion;
