@@ -15,7 +15,8 @@ uses
   TerrainGeometrySimple, Voronoi, GLCamera, TerrainGeometryDynamic,
   TerrainSourcePerlinNoise, GLOctree, GLFrustum, GLObject, GLShaderMaterial,
   GLShader, TerrainGeometryShaded, TerrainSource, TerrainWater, GLFramebuffer,
-  GLBase, DynamicException, Pathfinder, TransportGraph;
+  GLBase, DynamicException, Pathfinder, TransportGraph, TransportClasses,
+  TransportGeometryClasses, PGBuildingNodes;
 
 var
   App: TTT3D;
@@ -23,9 +24,12 @@ var
   HeapTrcFile: String;
 {$endif}
 
-  NodeA, NodeB, NodeC: TPathNode;
+  {NodeA, NodeB, NodeC: TPathNode;
   APathfinder: TPathfinder;
-  Solution: TPath;
+  Solution: TPath;}
+
+  Curve3: TCubicBezier3;
+  Curve1: TCubicBezier1;
 begin
   {$ifdef UseHeapTrc}
   HeapTrcFile := ExtractFilePath(ParamStr(0)) + 'heaptrc.txt';
@@ -36,12 +40,25 @@ begin
 
   Randomize;
 
-  NodeA := TPathNode.Create;
+  {Curve3 := CubicBezier3(
+    Vector3(0, 0, 0),
+    Vector3(0, 0, 0),
+    Vector3(2, 0, 0),
+    Vector3(3, 0, 0)
+  );
+  Curve1 := CubicBezier1(
+    0, 10, -10, 0
+  );
+
+  WriteLn(Format('%.4f', [BLength(Curve1)]));
+  WriteLn(Format('%.4f %.4f', [BLength(Curve3), BLengthAuto(Curve3)]));}
+
+  {NodeA := TPathNode.Create;
   NodeA.Location := Vector3(0.0, 0.0, 0.0);
   NodeA.NewSidePair(Vector3(0.0, 1.0, 0.0));
 
   NodeB := TPathNode.Create;
-  NodeB.Location := Vector3(0.0, 1.0, 0.0);
+  NodeB.Location := Vector3(0.0, 11.0, 0.0);
   NodeB.NewSidePair(Vector3(0.0, 1.0, 0.0));
 
   NodeC := TPathNode.Create;
@@ -49,7 +66,11 @@ begin
   NodeC.NewSidePair(Normalize(Vector3(0.0, -1.0, -1.0)));
 
   NodeA.Connect(SideDefinition(0, sdA), SideDefinition(0, sdB), NodeB, TPathLinkStraight).Invalidate;
-  NodeB.Connect(SideDefinition(0, sdA), SideDefinition(0, sdA), NodeC, TPathLinkBezier).Invalidate;
+  with NodeB.Connect(SideDefinition(0, sdA), SideDefinition(0, sdA), NodeC, TPathLinkBezier) do
+  begin
+    Invalidate;
+    WriteLn(Length);
+  end;
   //NodeA.Connect(SideDefinition(0, sdA), SideDefinition(0, sdA), NodeC, TPathLinkBezier).Invalidate;
   NodeB.Connect(SideDefinition(0, sdA), SideDefinition(0, sdB), NodeA, TPathLinkBezier).Invalidate;
 
@@ -62,12 +83,12 @@ begin
   APathfinder.Free;
   NodeC.Free;
   NodeB.Free;
-  NodeA.Free;
+  NodeA.Free;}
 
-  {App := TTT3D.Create;
+  App := TTT3D.Create;
   try
     App.RunApp;
   finally
     App.Free;
-  end;}
+  end;
 end.

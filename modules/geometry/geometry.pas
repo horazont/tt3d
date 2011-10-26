@@ -1,4 +1,29 @@
 unit Geometry;
+(**********************************************************************
+File name: geometry.pas
+This file is part of: tt3d
+
+LICENSE
+
+The contents of this file are subject to the Mozilla Public License
+Version 1.1 (the "License"); you may not use this file except in
+compliance with the License. You may obtain a copy of the License at
+http://www.mozilla.org/MPL/
+
+Software distributed under the License is distributed on an "AS IS"
+basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+License for the specific language governing rights and limitations under
+the License.
+
+Alternatively, the contents of this file may be used under the terms of
+the GNU General Public license (the  "GPL License"), in which case  the
+provisions of GPL License are applicable instead of those above.
+
+FEEDBACK & QUESTIONS
+
+For feedback and questions about tt3d please e-mail one of the authors:
+    Jonas Wielicki <j.wielicki@sotecware.net>
+**********************************************************************)
 
 {$mode objfpc}{$H+}
 
@@ -133,7 +158,9 @@ function VLength(Vec3: TVector3): TVectorFloat; inline;
 function VLength(Vec3f: TVector3f): TVectorFloat; inline;
 function VLength(Vec4: TVector4): TVectorFloat; inline;
 
-function BLength(Bezier: TCubicBezier3; Steps: Integer = 1000): TVectorFloat;
+function BLength(Bezier: TCubicBezier1): TVectorFloat;
+function BLength(Bezier: TCubicBezier3): TVectorFloat;
+function BLengthNumeric(Bezier: TCubicBezier3; Steps: Integer = 1000): TVectorFloat;
 function BLengthEx(Bezier: TCubicBezier3; Accuracy: TVectorFloat): TVectorFloat;
 function BLengthAutoAccuracy(Bezier: TCubicBezier3): TVectorFloat; inline;
 function BLengthAuto(Bezier: TCubicBezier3): TVectorFloat; inline;
@@ -599,7 +626,21 @@ begin
   Result := Sqrt(Sqr(Vec4.X) + Sqr(Vec4.Y) + Sqr(Vec4.Z) + Sqr(Vec4.W));
 end;
 
-function BLength(Bezier: TCubicBezier3; Steps: Integer): TVectorFloat;
+function BLength(Bezier: TCubicBezier1): TVectorFloat;
+begin
+  Result := Abs(-Bezier[0]+3*Bezier[1]-3*Bezier[2]+Bezier[3])+
+      Abs(3*Bezier[0]-6*Bezier[1]+3*Bezier[2])+
+      Abs(-3*Bezier[0]+3*Bezier[1]);
+end;
+
+function BLength(Bezier: TCubicBezier3): TVectorFloat;
+begin
+  Result := VLength(-Bezier[0]+3*Bezier[1]-3*Bezier[2]+Bezier[3])+
+      VLength(3*Bezier[0]-6*Bezier[1]+3*Bezier[2])+
+      VLength(-3*Bezier[0]+3*Bezier[1]);
+end;
+
+function BLengthNumeric(Bezier: TCubicBezier3; Steps: Integer): TVectorFloat;
 var
   I: Integer;
   Step: TVectorFloat;
