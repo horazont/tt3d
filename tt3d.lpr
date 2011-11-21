@@ -30,6 +30,9 @@ var
 
   Curve3: TCubicBezier3;
   Curve1: TCubicBezier1;
+
+{$R *.res}
+
 begin
   {$ifdef UseHeapTrc}
   HeapTrcFile := ExtractFilePath(ParamStr(0)) + 'heaptrc.txt';

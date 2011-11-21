@@ -2,17 +2,21 @@ uniform float waterLine;
 uniform float snowLine;
 uniform vec3 camPos;
 
+uniform sampler2D normalMap;
+uniform sampler2D tangentMap;
 uniform sampler2D colorMap;
 uniform sampler2D noise;
 uniform sampler2D normalDetailMap;
 
-varying vec3 normal;
-varying vec3 tangent;
+varying vec2 tcoord;
 varying vec3 position;
 varying vec3 untransformed;
 
 void main()
 {
+  vec3 normal = vec3(texture2D(normalMap, tcoord)) * 2.0 - 1.0;
+  vec3 tangent = vec3(texture2D(tangentMap, tcoord)) * 2.0 - 1.0;
+
   float fog = clamp(exp(length(camPos.xy - untransformed.xy) * 0.005) - 1.0, 0.0, 1.0); 
   // fog = 0.0;
   if (untransformed.z < waterLine - 0.2)

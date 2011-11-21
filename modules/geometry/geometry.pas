@@ -48,6 +48,9 @@ type
     4: (Cos, Sin: TVectorFloat);
   end;
   PVector2 = ^TVector2;
+  TBounds2 = record
+    Min, Max: TVector2;
+  end;
 
   TVector3_Array = array [0..2] of TVectorFloat;
   TVector3 = record
@@ -90,6 +93,14 @@ type
   PVector3f = ^TVector3f;
   TVector4f = array [0..3] of Single;
   PVector4f = ^TVector4f;
+
+  TVector2ub = packed array [0..1] of Byte;
+  PVector2ub = ^TVector2ub;
+  TVector3ub = packed array [0..2] of Byte;
+  PVector3ub = ^TVector3ub;
+
+  TVector2s = array [0..1] of SmallInt;
+  PVector2s = ^TVector2s;
 
   TTriangle3f = array [0..2] of TVector3f;
 
@@ -140,6 +151,11 @@ operator := (A: TVector4): TVector4f; inline;
 operator := (A: TVector4f): TVector4; inline;
 operator := (A: TMatrix4): TMatrix4f; inline;
 
+operator := (A: TVector2): TVector2ub; inline;
+operator := (A: TVector2ub): TVector2; inline;
+operator := (A: TVector3): TVector3ub; inline;
+operator := (A: TVector3ub): TVector3; inline;
+
 operator = (A, B: TVector2): Boolean; inline;
 operator = (A, B: TVector3): Boolean; inline;
 operator = (A, B: TVector4): Boolean; inline;
@@ -172,6 +188,7 @@ function CubicBezier4(const P1, P2, P3, P4: TVector4): TCubicBezier4; inline;
 function Vector2(X: TVectorFloat; Y: TVectorFloat): TVector2; inline;
 function Vector3(X: TVectorFloat; Y: TVectorFloat; Z: TVectorFloat): TVector3; inline;
 function Vector3(Vec2: TVector2; Z: TVectorFloat): TVector3; inline;
+function Vector3ub(Vec3: TVector3): TVector3ub; inline;
 function Vector3f(Vec3: TVector3): TVector3f; inline;
 function Vector3(Vec3: TVector3f): TVector3; inline;
 function Vector3f(X, Y, Z: Single): TVector3f; inline;
@@ -485,6 +502,7 @@ begin
   Result.Y := A[1];
 end;
 
+
 operator := (A: TVector3): TVector3f;
 begin
   Result[0] := A.X;
@@ -513,6 +531,32 @@ begin
   Result.Y := A[1];
   Result.Z := A[2];
   Result.W := A[3];
+end;
+
+operator := (A: TVector2): TVector2ub;
+begin
+  Result[0] := Min(Max(Round((A.X / 2. + 0.5) * 255), 0), 255);
+  Result[1] := Min(Max(Round((A.Y / 2. + 0.5) * 255), 0), 255);
+end;
+
+operator := (A: TVector2ub): TVector2;
+begin
+  Result.X := (A[0] / 255) * 2 - 1.0;
+  Result.Y := (A[1] / 255) * 2 - 1.0;
+end;
+
+operator := (A: TVector3): TVector3ub;
+begin
+  Result[0] := Min(Max(Round((A.X / 2. + 0.5) * 255), 0), 255);
+  Result[1] := Min(Max(Round((A.Y / 2. + 0.5) * 255), 0), 255);
+  Result[2] := Min(Max(Round((A.Z / 2. + 0.5) * 255), 0), 255);
+end;
+
+operator := (A: TVector3ub): TVector3;
+begin
+  Result.X := (A[0] / 255) * 2 - 1.0;
+  Result.Y := (A[1] / 255) * 2 - 1.0;
+  Result.Z := (A[2] / 255) * 2 - 1.0;
 end;
 
 operator:=(A: TMatrix4): TMatrix4f;
@@ -770,6 +814,11 @@ function Vector3(Vec2: TVector2; Z: TVectorFloat): TVector3; inline;
 begin
   Result.Vec2 := Vec2;
   Result.Z := Z;
+end;
+
+function Vector3ub(Vec3: TVector3): TVector3ub; inline;
+begin
+  Result := Vec3;
 end;
 
 function Vector3f(Vec3: TVector3): TVector3f; inline;

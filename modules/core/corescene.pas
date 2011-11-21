@@ -210,9 +210,9 @@ begin
   FTerrainMaterial.NormalMap.SetFilter(GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR);}
   glGetError;
 
-  FWaterTexture := TGLAttachmentRawTexture.Create(GL_RGB8, 1024, 1024);
+  FWaterTexture := TGLAttachmentRawTexture.Create(GL_RGB8, 512, 512);
   FWaterBuffer := TGLFramebuffer.Create;
-  FWaterBuffer.DepthAttachment := TGLAttachmentRenderBuffer.Create(GL_DEPTH_COMPONENT16, 1024, 1024);
+  FWaterBuffer.DepthAttachment := TGLAttachmentRenderBuffer.Create(GL_DEPTH_COMPONENT16, 512, 512);
   FWaterBuffer.ColorAttachment[0] := FWaterTexture;
 
   FWaterMaterial := TTerrainWaterMaterial.Create(FTerrainBuffer, TTerrainFormat);
@@ -221,15 +221,19 @@ begin
 
   LoadShader;
 
-  Src := TTerrainSourcePerlinNoise.Create(512, 512, 5297, 3215, 0.4, 11, 0.05, 0.05, 8.0, 0.0);
+  Src := TTerrainSourcePerlinNoise.Create(512, 512, 5297, 3215, 0.35, 11, 0.025, 0.025, 8.0, 0.0);
+  WriteLn('Creating terrain instance...');
   FTerrain := TTerrain.Create(512, 512, Src, FTerrainMaterial);
+  WriteLn('Done.');
   FTerrain.WaterLine := 0.0;
   FTerrain.SnowLine := 8.0;
   FWaterPlane := TTerrainWater.Create(512, 512, FWaterMaterial);
   FWaterPlane.WaterLine := 0.0;
 
   RaiseLastGLError;
+  WriteLn('Generating terrain...');
   FTerrain.Generate;
+  WriteLn('Terrain generated.');
   RaiseLastGLError;
   glLoadIdentity;
   glMatrixMode(GL_MODELVIEW);

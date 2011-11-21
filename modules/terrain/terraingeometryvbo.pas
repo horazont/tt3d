@@ -1,6 +1,6 @@
-unit TerrainGeometryShaded;
+unit TerrainGeometryVBO;
 (**********************************************************************
-File name: terraingeometryshaded.pas
+File name: terraingeometryvbo.pas
 This file is part of: tt3d
 
 LICENSE
@@ -35,9 +35,7 @@ uses
 
 const
   NOISE_TEXTURE_SIZE = 256;
-  SHADED_TERRAIN_BLOCK_SIZE = 64;
-  TEXTURE_DATA_TYPE = GL_RGBA8;
-  TEXTURE_HEIGHT_TYPE = GL_LUMINANCE_FLOAT32_ATI;
+  TERRAIN_BLOCK_SIZE = 64;
 
 type
 
@@ -50,7 +48,9 @@ type
     procedure BindGLPointer; override;
     procedure UnbindGLPointer; override;
   public
-    property Position[Index: TVertexIndex]: TVector2f index 0 read GetVec2 write SetVec2;
+    property Position[Index: TVertexIndex]: TVector3f index 0 read GetVec3 write SetVec3;
+    property Normal[Index: TVertexIndex]: TVector3f index 3 * SizeOf(Single) read GetVec3 write SetVec3;
+    property Tangent[Index: TVertexIndex]: TVector3f index 6 * SizeOf(Single) read GetVec3 write SetVec3;
   end;
 
   { TTerrainMaterial }
@@ -75,13 +75,13 @@ type
       const AMaterial: TTerrainMaterial);
     destructor Destroy; override;
   private
-    FHeightMap, FNormalMap, FTangentMap, FNoise: TGLUint;
-    FTerrainSection: TGLGeometryObject;
+    FTerrainSections: array of array of TGLGeometryObject;
     FMaterial: TTerrainMaterial;
     FWidth, FHeight: Integer;
-    FHeightfield: PSingle;
+    FXSections, FYSections: Integer;
     FSource: TTerrainSource;
     FWaterLine, FSnowLine: Single;
+    FHeightfield: PSingle;
     function GetHeightfield(X, Y: Integer): Single;
   public
     procedure Burn;
@@ -98,28 +98,30 @@ type
 
 implementation
 
+
 { TTerrainFormat }
 
-class function TTerrainFormat.GetActualVertexSize: Integer;
+function TTerrainFormat.GetVec3(AIndex: Integer; Index: TVertexIndex
+  ): TVector3f;
 begin
-  // 2x Position
-  Result := SizeOf(Single) * 2;
+  // 3x Position, 3x Normal, 3x Tangent [a.k.a. texcoord ;) ]
+  Result := SizeOf(Single) * 9;
 end;
 
 procedure TTerrainFormat.BindGLPointer;
 begin
   glEnableClientState(GL_VERTEX_ARRAY);
-  {glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-  glEnableClientState(GL_NORMAL_ARRAY);}
-  glVertexPointer(2, GL_FLOAT, FNeededVertexSize, nil);
-  {glNormalPointer(GL_FLOAT, FNeededVertexSize, Pointer(ptrint(2*SizeOf(Single))));
-  glTexCoordPointer(3, GL_FLOAT, FNeededVertexSize, Pointer(ptrint(5*SizeOf(Single))));}
+  glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+  glEnableClientState(GL_NORMAL_ARRAY);
+  glVertexPointer(3, GL_FLOAT, FNeededVertexSize, nil);
+  glNormalPointer(GL_FLOAT, FNeededVertexSize, Pointer(ptrint(3*SizeOf(Single))));
+  glTexCoordPointer(3, GL_FLOAT, FNeededVertexSize, Pointer(ptrint(6*SizeOf(Single))));
 end;
 
 procedure TTerrainFormat.UnbindGLPointer;
 begin
-  {glDisableClientState(GL_NORMAL_ARRAY);
-  glDisableClientState(GL_TEXTURE_COORD_ARRAY);}
+  glDisableClientState(GL_NORMAL_ARRAY);
+  glDisableClientState(GL_TEXTURE_COORD_ARRAY);
   glDisableClientState(GL_VERTEX_ARRAY);
 end;
 
@@ -171,8 +173,8 @@ constructor TTerrain.Create(const AWidth, AHeight: Integer;
 begin
   FWidth := AWidth;
   FHeight := AHeight;
-  if (FWidth mod SHADED_TERRAIN_BLOCK_SIZE <> 0) or (FHeight mod SHADED_TERRAIN_BLOCK_SIZE <> 0) or (FHeight <> FWidth) then
-    raise ETerrainError.CreateFmt('Invalid terrain size: %d×%d, scales are required to be equal and multiples of %d.', [FWidth, FHeight, SHADED_TERRAIN_BLOCK_SIZE]);
+  if (FWidth mod TERRAIN_BLOCK_SIZE <> 0) or (FHeight mod TERRAIN_BLOCK_SIZE <> 0) or (FHeight <> FWidth) then
+    raise ETerrainError.CreateFmt('Invalid terrain size: %d×%d, scales are required to be equal and multiples of %d.', [FWidth, FHeight, TERRAIN_BLOCK_SIZE]);
 
   FMaterial := AMaterial;
   if not (FMaterial.Format is TTerrainFormat) then
@@ -180,6 +182,8 @@ begin
   FTerrainSection := nil;
   FHeightfield := nil;
   FSource := ASource;
+  FXSections := FWidth div TERRAIN_BLOCK_SIZE;
+  FYSections := FHeight div TERRAIN_BLOCK_SIZE;
 end;
 
 destructor TTerrain.Destroy;
@@ -194,100 +198,30 @@ begin
 end;
 
 procedure TTerrain.Burn;
+var
+  X, Y: Integer;
 begin
-  if FTerrainSection <> nil then
+  if FHeightfield <> nil then
   begin
-    glDeleteTextures(3, @FNormalMap);
-    FTerrainSection.Free;
-    Freemem(FHeightfield);
+    for X := 0 to FXSections - 1 do
+      for Y := 0 to FYSections - 1 do
+      begin
+        FTerrainSections[X][Y].Free;
+      end;
+    FreeMem(FHeightfield);
   end;
 end;
 
 procedure TTerrain.Draw(const CamPos, CamPosTransformed: TVector3;
   const CamFront: TVector3);
-var
-  X, Y, W, H: Integer;
-  LocOffset, LocWidth: TGLuint;
-  FrontDistance, ViewDistance: TVectorFloat;
-  Cam3f: TVector3f;
-  Loc: TVector2;
-
 begin
-  W := FWidth div SHADED_TERRAIN_BLOCK_SIZE;
-  H := FHeight div SHADED_TERRAIN_BLOCK_SIZE;
-  FrontDistance := 2 * sqrt(2) * SHADED_TERRAIN_BLOCK_SIZE;
-  ViewDistance := ln(2) * 200.0 + sqrt(2) * SHADED_TERRAIN_BLOCK_SIZE;
-  Cam3f := CamPos;
 
-  FMaterial.BindForRendering(False);
-  LocOffset := glGetUniformLocation(FMaterial.Shader.ProgramObject, 'offset');
-  LocWidth := glGetUniformLocation(FMaterial.Shader.ProgramObject, 'width');
-
-  glActiveTexture(GL_TEXTURE0);
-  glEnable(GL_TEXTURE_2D);
-  glBindTexture(GL_TEXTURE_2D, FNoise);
-  glActiveTexture(GL_TEXTURE1);
-  glEnable(GL_TEXTURE_2D);
-  glBindTexture(GL_TEXTURE_2D, FNormalMap);
-  glActiveTexture(GL_TEXTURE2);
-  glEnable(GL_TEXTURE_2D);
-  glBindTexture(GL_TEXTURE_2D, FTangentMap);
-  glActiveTexture(GL_TEXTURE5);
-  glEnable(GL_TEXTURE_2D);
-  glBindTexture(GL_TEXTURE_2D, FHeightMap);
-
-  glUniform1i(glGetUniformLocation(FMaterial.Shader.ProgramObject, 'noise'), 0);
-  glUniform1i(glGetUniformLocation(FMaterial.Shader.ProgramObject, 'normalMap'), 1);
-  glUniform1i(glGetUniformLocation(FMaterial.Shader.ProgramObject, 'tangentMap'), 2);
-  glUniform1i(glGetUniformLocation(FMaterial.Shader.ProgramObject, 'colorMap'), 3);
-  glUniform1i(glGetUniformLocation(FMaterial.Shader.ProgramObject, 'normalDetailMap'), 4);
-  glUniform1i(glGetUniformLocation(FMaterial.Shader.ProgramObject, 'heightMap'), 5);
-  glUniform1f(glGetUniformLocation(FMaterial.Shader.ProgramObject, 'waterLine'), FWaterLine);
-  glUniform1f(glGetUniformLocation(FMaterial.Shader.ProgramObject, 'snowLine'), FSnowLine);
-  glUniform3fv(glGetUniformLocation(FMaterial.Shader.ProgramObject, 'camPos'), 1, @Cam3f[0]);
-  glUniform2f(LocWidth, FWidth, FHeight);
-  for Y := 0 to H - 1 do
-  begin
-    for X := 0 to W - 1 do
-    begin
-      Loc := Vector2(X * (SHADED_TERRAIN_BLOCK_SIZE), Y * (SHADED_TERRAIN_BLOCK_SIZE));
-      if CamFront * Vector3(CamPosTransformed - Vector3(Loc, 0.0)) < -FrontDistance then
-      begin
-        Continue;
-      end;
-      if VLength(CamPos.Vec2 - Loc) > ViewDistance then
-      begin
-        Continue;
-      end;
-      glUniform2f(LocOffset, Loc.X, Loc.Y);
-      FMaterial.Render(GL_TRIANGLES);
-    end;
-
-  end;
-  glActiveTexture(GL_TEXTURE5);
-  glBindTexture(GL_TEXTURE_2D, 0);
-  glEnable(GL_TEXTURE_2D);
-  glActiveTexture(GL_TEXTURE2);
-  glBindTexture(GL_TEXTURE_2D, 0);
-  glEnable(GL_TEXTURE_2D);
-  glActiveTexture(GL_TEXTURE1);
-  glBindTexture(GL_TEXTURE_2D, 0);
-  glEnable(GL_TEXTURE_2D);
-  glActiveTexture(GL_TEXTURE0);
-  glBindTexture(GL_TEXTURE_2D, 0);
-  glEnable(GL_TEXTURE_2D);
-  FMaterial.UnbindForRendering;
 end;
 
 procedure TTerrain.Generate;
-
-type
-  TLowVector3 = TVector3ub;
-
 var
   NoiseBuffer: PSingle;
-  HeightBuffer: PSingle;
-  NormalBuffer, TangentBuffer: PVector3ub;
+  VertexBuffer, NormalBuffer, TangentBuffer: PVector3f;
   TerrainPoints: Integer;
 
   X, Y, I, J: Integer;
@@ -405,31 +339,16 @@ var
     end;
   end;
 
-  procedure CalcNormalTangent;
-  var
-    F: Integer;
-    V: TVector3;
-  begin
-    V := Vector3(0.0, 0.0, 0.0);
-    for F := 0 to 3 do
-      if FaceEnabled[F] then
-        V += FaceNormals[F*2] + FaceNormals[F*2+1];
-
-    //NormalBuffer[I] := Vector4f(V, FHeightfield[I]);
-    HeightBuffer[I] := FHeightfield[I];
-    NormalBuffer[I] := Vector3ub(Normalize(V));
-    if not (FaceEnabled[1] or FaceEnabled[3]) then
-      TangentBuffer[I] := Vector3ub(Normalize(Vertices[4] - Vertices[3]))
-    else
-      TangentBuffer[I] := Vector3ub(Normalize(Vertices[5] - Vertices[4]));
-  end;
-
 var
   Noise: TTerrainSourcePerlinNoise;
+  V: TVector3;
+  VertexIndex: Integer;
+  XBlock, YBlock, XFace, YFace: Integer;
+  CurrSection: TGLGeometryTerrainSectionForTris;
 begin
   Burn;
   TerrainPoints := FWidth * FHeight;
-  glGenTextures(4, @FHeightMap);
+  {glGenTextures(4, @FHeightMap);
   RaiseLastGLError;
 
   NoiseBuffer := GetMem(NOISE_TEXTURE_SIZE * NOISE_TEXTURE_SIZE * SizeOf(Single));
@@ -457,17 +376,40 @@ begin
     RaiseLastGLError;
   finally
     FreeMem(NoiseBuffer);
-  end;
+  end;}
 
   FHeightfield := GetMem(TerrainPoints * SizeOf(Single));
   FSource.GetData(0, 0, FWidth, FHeight, FHeightfield);
 
-  NormalBuffer := GetMem(TerrainPoints * SizeOf(TLowVector3));
-  TangentBuffer := GetMem(TerrainPoints * SizeOf(TLowVector3));
-  HeightBuffer := GetMem(TerrainPoints * SizeOf(Single));
-  try
+  for XBlock := 0 to FXSections - 1 do
+  begin
+    for YBlock := 0 to FYSections - 1 do
+    begin
+      CurrSection := TGLGeometryTerrainSectionForTris.Create(TGLGeometryBuffer.Create(FMaterial.Format.GetNeededVertexSize, GL_DYNAMIC_DRAW), FMaterial.Format, TERRAIN_BLOCK_SIZE, TERRAIN_BLOCK_SIZE));
+      FTerrainSections[X][Y] := CurrSection;
 
-    I := 0;
+      with TTerrainFormat(FMaterial.Format) do
+      begin
+        UseMap(CurrSection.Map);
+        for XQuad := 0 to TERRAIN_BLOCK_SIZE - 1 do
+        begin
+          for YQuad := 0 to TERRAIN_BLOCK_SIZE - 1 do
+          begin
+            Position[XQuad + YQuad * TERRAIN_BLOCK_SIZE] :=
+              Vector3f(
+                TERRAIN_BLOCK_SIZE * XBlock + XQuad,
+                TERRAIN_BLOCK_SIZE * YBlock + YQuad,
+                0.0);
+            Normal[XQuad + YQuad * TERRAIN_BLOCK_SIZE] := Vector3f(0.0, 0.0, 0.0);
+            Tangent[XQuad + YQuad * TERRAIN_BLOCK_SIZE] := Vector3f(0.0, 0.0, 0.0);
+          end;
+        end;
+      end;
+    end;
+  end;
+
+
+    {I := 0;
     for Y := 0 to FHeight - 1 do
     begin
       for X := 0 to FWidth - 1 do
@@ -484,64 +426,31 @@ begin
         SetupFaceNormals;
         CalcNormalTangent;
 
+        V := Vector3(0., 0., 0.);
+        for VertexIndex := 0 to 3 do
+          if FaceEnabled[VertexIndex] then
+            V += FaceNormals[VertexIndex*2] + FaceNormals[VertexIndex*2+1]
+        var
+          F: Integer;
+          V: TVector3;
+        begin
+          V := Vector3(0.0, 0.0, 0.0);
+          for F := 0 to 3 do
+            if FaceEnabled[F] then
+              V += FaceNormals[F*2] + FaceNormals[F*2+1];
+
+          //NormalBuffer[I] := Vector4f(V, FHeightfield[I]);
+          HeightBuffer[I] := FHeightfield[I];
+          NormalBuffer[I] := Vector3ub(Normalize(V));
+          if not (FaceEnabled[1] or FaceEnabled[3]) then
+            TangentBuffer[I] := Vector3ub(Normalize(Vertices[4] - Vertices[3]))
+          else
+            TangentBuffer[I] := Vector3ub(Normalize(Vertices[5] - Vertices[4]));
+        end;
+
         Inc(I);
       end;
-    end;
-
-    glBindTexture(GL_TEXTURE_2D, FNormalMap);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    RaiseLastGLError;
-    // glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA_FLOAT32_ATI, FWidth, FHeight, 0, GL_RGBA, GL_FLOAT, NormalBuffer);
-    glTexImage2D(GL_TEXTURE_2D, 0, TEXTURE_DATA_TYPE, FWidth, FHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, NormalBuffer);
-    RaiseLastGLError;
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
-    glBindTexture(GL_TEXTURE_2D, FTangentMap);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    RaiseLastGLError;
-    glTexImage2D(GL_TEXTURE_2D, 0, TEXTURE_DATA_TYPE, FWidth, FHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, TangentBuffer);
-    RaiseLastGLError;
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
-    glBindTexture(GL_TEXTURE_2D, FHeightMap);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    RaiseLastGLError;
-    glTexImage2D(GL_TEXTURE_2D, 0, TEXTURE_HEIGHT_TYPE, FWidth, FHeight, 0, GL_LUMINANCE, GL_FLOAT, HeightBuffer);
-    RaiseLastGLError;
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-  finally
-    FreeMem(NormalBuffer);
-    FreeMem(TangentBuffer);
-    FreeMem(HeightBuffer);
-  end;
-
-  FTerrainSection := TGLGeometryTerrainSectionForTris.Create(FMaterial.GeometryBuffer, FMaterial.Format, SHADED_TERRAIN_BLOCK_SIZE+1, SHADED_TERRAIN_BLOCK_SIZE+1, FMaterial.StaticIndexBuffer);
-  with FTerrainSection.Format as TTerrainFormat do
-  begin
-    UseMap(FTerrainSection.Map);
-    I := 0;
-    for Y := 0 to SHADED_TERRAIN_BLOCK_SIZE do
-      for X := 0 to SHADED_TERRAIN_BLOCK_SIZE do
-      begin
-        Position[I]   := Vector2(X,   Y);
-        {Position[I+1] := Vector2(X+1, Y);
-        Position[I+2] := Vector2(X+1, Y+1);
-        Position[I+3] := Vector2(X,   Y+1);}
-        Inc(I, 1);
-      end;
-  end;
+    end;   }
 end;
 
 end.
